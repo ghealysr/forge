@@ -1,4 +1,4 @@
-"""Tests for forge.db — enrichment writes, batch operations, and advanced queries."""
+"""Tests for forge.db enrichment writes and batch operations."""
 
 import uuid
 

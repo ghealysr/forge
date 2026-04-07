@@ -1,23 +1,4 @@
-"""
-FORGE CLI — The command-line interface for the FORGE enrichment engine.
-
-This is the main entry point when a user types `forge` on the command line.
-Provides subcommands for enrichment, import/export, discovery, and configuration.
-
-Usage:
-    forge enrich --file input.csv                         # Zero-config CSV mode
-    forge enrich --mode email --workers 50 --resume       # Database mode
-    forge enrich --mode ai --adapter claude                # AI with Claude
-    forge import --file businesses.csv                     # Import CSV to database
-    forge export --output results.csv                      # Export enriched data
-    forge status                                           # Show enrichment stats
-    forge config show                                      # Show configuration
-    forge discover --zip 33602                             # Overture discovery
-    forge dashboard                                        # Start web dashboard
-    forge mcp-server                                       # Start MCP server
-
-Dependencies: forge.db (ForgeDB), forge.config (ForgeConfig)
-"""
+"""CLI entry point. Subcommands for enrichment, import/export, discovery, and config."""
 
 from __future__ import annotations
 
@@ -129,7 +110,7 @@ def _validate_import_file(file_path: str) -> Path:
             if next(reader, None) is None:
                 die("No records found in file.", hint="The CSV has a header but no data rows.")
     except UnicodeDecodeError:
-        die("Cannot read file — encoding error.", hint="Ensure the file is UTF-8 encoded.")
+        die("Cannot read file, encoding error.", hint="Ensure the file is UTF-8 encoded.")
     except csv.Error as e:
         die(f"Invalid CSV format: {e}")
     return input_path
@@ -173,7 +154,7 @@ def cmd_import(args: argparse.Namespace) -> None:
         default_path = os.path.join(os.path.expanduser("~"), ".forge", "forge.db")
         os.makedirs(os.path.dirname(default_path), exist_ok=True)
         db_config = {"db_path": default_path}
-        info(f"No database configured — using default: {default_path}")
+        info(f"No database configured, using default: {default_path}")
 
     try:
         db = ForgeDB.from_config(db_config)
@@ -181,7 +162,7 @@ def cmd_import(args: argparse.Namespace) -> None:
     except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not connect to database: {e}")
 
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Import")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Import")
     info(f"  File:     {input_path.name}")
 
     try:
@@ -227,7 +208,7 @@ def cmd_export(args: argparse.Namespace) -> None:
     output_format = getattr(args, "format", "csv") or "csv"
     filter_name = getattr(args, "filter", None) or getattr(args, "where", None)
 
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Export")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Export")
     try:
         result = (
             db.export_json(output_path, where=filter_name)
@@ -319,7 +300,7 @@ def cmd_status(args: argparse.Namespace) -> None:
         die(f"Could not read database: {e}")
 
     total = stats.get("total_records", 0)
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Status")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Status")
     if total == 0:
         info("\n  Database is empty. Import data to get started:")
         info(f"    {bold('forge import --file businesses.csv')}")
@@ -379,16 +360,16 @@ def _print_adapter_info(config: Any) -> None:
         has_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY"))
         has_openai = bool(os.environ.get("OPENAI_API_KEY"))
         if has_anthropic:
-            info(f"               {dim('ANTHROPIC_API_KEY is set — Claude adapter available')}")
+            info(f"               {dim('ANTHROPIC_API_KEY is set, Claude adapter available')}")
         if has_openai:
-            info(f"               {dim('OPENAI_API_KEY is set — OpenAI adapter available')}")
+            info(f"               {dim('OPENAI_API_KEY is set, OpenAI adapter available')}")
         if not has_anthropic and not has_openai:
             info(f"               {dim('Set ANTHROPIC_API_KEY or install Ollama to enable AI')}")
 
 
 def _config_show(config: Any) -> None:
     """Display current configuration."""
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Configuration")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Configuration")
     info("")
     _print_config_header(config)
     _print_adapter_info(config)
@@ -499,7 +480,7 @@ def _import_discovered(results: list, logger: Any) -> None:
 def cmd_discover(args: argparse.Namespace) -> None:
     """Discover businesses using Overture Maps data."""
     logger = setup_logging(verbose=args.verbose, quiet=args.quiet)
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Discover")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Discover")
     info("")
 
     try:
@@ -531,7 +512,7 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
 
     port = getattr(args, "port", 8080) or 8080
 
-    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Dashboard")
+    info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} - Dashboard")
     info(f"  Starting dashboard on http://127.0.0.1:{port}")
     info("  Press Ctrl+C to stop.\n")
 
@@ -557,7 +538,7 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
 
 def cmd_mcp_server(args: argparse.Namespace) -> None:
     """Start the FORGE MCP server for AI assistant integration."""
-    # MCP server uses stdin/stdout for JSON-RPC — logging goes to stderr
+    # MCP server uses stdin/stdout for JSON-RPC; logging goes to stderr
     logging.basicConfig(
         level=logging.DEBUG if getattr(args, "verbose", False) else logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",

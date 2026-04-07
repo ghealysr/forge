@@ -1,18 +1,6 @@
-"""
-FORGE SMTP Email Verifier — Discovers emails for businesses via SMTP RCPT TO verification.
+"""SMTP email verifier. Discovers emails by testing common prefixes via RCPT TO.
 
-For businesses that have a website_url but no email, this script:
-  1. Extracts the domain from website_url
-  2. Generates candidate emails (info@, contact@, hello@, office@, sales@)
-  3. Verifies each candidate via SMTP (MX lookup → RCPT TO check, no email sent)
-  4. Writes the first verified email back with email_source='smtp_verified'
-
-Uses COALESCE pattern (never overwrites existing emails).
-Supports --resume via keyset pagination with checkpoint file.
-
-Usage:
-    python -m forge.importers.smtp_verifier --resume
-    python -m forge.importers.smtp_verifier --limit 5000 --workers 3
+Generates candidates (info@, contact@, etc.) and verifies without sending mail.
 """
 
 from __future__ import annotations
@@ -252,15 +240,15 @@ def verify_email(email: str, mx_hosts: List[str]) -> bool:
             if code == 250:
                 return True
             elif code in (550, 551, 552, 553, 554):
-                # Definitive rejection — no need to try other MX hosts
+                # Definitive rejection, no need to try other MX hosts
                 return False
             elif code in (450, 451, 452):
-                # Greylisting / temporary rejection — skip this MX, try next
+                # Greylisting / temporary rejection, skip this MX, try next
                 continue
             else:
-                # Unknown code — try next MX
+                # Unknown code, try next MX
                 continue
-        # Connection failed — try next MX
+        # Connection failed, try next MX
         continue
 
     return False
@@ -296,7 +284,7 @@ def is_catchall_domain(domain: str, mx_hosts: List[str]) -> bool:
             is_catchall = True
             break
         elif code is not None:
-            # Got a definitive response (rejection) — not catch-all
+            # Got a definitive response (rejection), not catch-all
             is_catchall = False
             break
 

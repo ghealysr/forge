@@ -1,21 +1,4 @@
-"""
-FORGE Claude Adapter -- Interface to Anthropic's Claude API.
-
-Provides the same abstraction as OllamaAdapter but backed by Anthropic's
-Messages API.  Handles message format translation, tool-use mapping,
-rate-limit retries with exponential backoff, and extended thinking.
-
-Supports:
-  - Chat completion with tool support (generate)
-  - Single prompt convenience method (generate_simple)
-  - Extended thinking mode
-  - Sequential batch generation
-  - Health check and model listing
-  - Exponential backoff on rate limits (3 retries: 5s / 15s / 45s)
-
-Dependencies: anthropic (Anthropic Python SDK)
-Depended on by: agent_loop.py, enrichment workers, config.get_adapter()
-"""
+"""Claude API adapter with tool support, rate-limit retries, and extended thinking."""
 
 from __future__ import annotations
 
@@ -72,7 +55,7 @@ class ClaudeAdapter:
             timeout=default_timeout,
         )
         logger.info(
-            "Claude adapter initialized — model=%s, timeout=%.0fs",
+            "Claude adapter initialized: model=%s, timeout=%.0fs",
             self._default_model,
             self._default_timeout,
         )
@@ -168,14 +151,14 @@ class ClaudeAdapter:
             except anthropic.RateLimitError as e:
                 last_error = e
                 logger.warning(
-                    "Rate limited (attempt %d/%d) — retrying in %ds",
+                    "Rate limited (attempt %d/%d), retrying in %ds",
                     attempt + 1,
                     len(_BACKOFF_DELAYS),
                     delay,
                 )
                 time.sleep(delay)
             except anthropic.AuthenticationError:
-                logger.error("Authentication failed — check ANTHROPIC_API_KEY")
+                logger.error("Authentication failed, check ANTHROPIC_API_KEY")
                 raise
             except anthropic.APIError as e:
                 logger.error("Anthropic API error: %s", e)
@@ -186,7 +169,7 @@ class ClaudeAdapter:
             return func(*args, **kwargs)
         except anthropic.RateLimitError:
             logger.error(
-                "Rate limited after %d retries — giving up",
+                "Rate limited after %d retries, giving up",
                 len(_BACKOFF_DELAYS),
             )
             raise last_error  # type: ignore[misc]

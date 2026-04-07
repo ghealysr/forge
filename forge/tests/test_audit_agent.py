@@ -1,4 +1,4 @@
-"""Tests for forge.safety.audit_agent — data classes and pure logic."""
+"""Tests for forge.safety.audit_agent."""
 
 import time
 

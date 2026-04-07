@@ -1,4 +1,4 @@
-"""Tests for forge.monitor — monitor utility functions."""
+"""Tests for forge.monitor."""
 
 from forge.monitor import (
     SERVICE_PREFIX,

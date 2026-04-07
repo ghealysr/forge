@@ -1,11 +1,6 @@
-"""
-FORGE Database Abstraction Layer — SQLite and PostgreSQL, one interface.
+"""Database abstraction over SQLite and PostgreSQL.
 
-Schema definitions and backend classes live in db_schema.py.
-CSV import/export and upsert operations live in db_io.py (_ForgeDBIOMixin).
-
-Dependencies: sqlite3 (stdlib), psycopg2-binary (optional)
-Depended on by: every other FORGE module
+Schema lives in db_schema.py, CSV I/O in db_io.py.
 """
 
 from __future__ import annotations
@@ -88,7 +83,7 @@ class ForgeDB(_ForgeDBIOMixin):
             return None
         if where in self.SAFE_WHERE_FILTERS:
             return self.SAFE_WHERE_FILTERS[where]
-        # Reject unknown filters — no raw SQL allowed
+        # Reject unknown filters, no raw SQL allowed
         logger.warning("Rejected unknown WHERE filter: %s", where[:50])
         return None
 
@@ -98,7 +93,7 @@ class ForgeDB(_ForgeDBIOMixin):
         """
         Create the businesses table and indexes if they don't exist.
 
-        Safe to call repeatedly — uses IF NOT EXISTS for all DDL.
+        Safe to call repeatedly. Uses IF NOT EXISTS for all DDL.
         Handles dialect differences between SQLite and PostgreSQL automatically.
         """
         if self.is_postgres:
@@ -642,11 +637,11 @@ class ForgeDB(_ForgeDBIOMixin):
                     conn.commit()
 
     def commit(self) -> None:
-        """No-op — execute() auto-commits. Use transaction() for multi-statement atomicity."""
+        """No-op. execute() auto-commits. Use transaction() for multi-statement atomicity."""
         pass
 
     def rollback(self) -> None:
-        """No-op — execute() auto-commits. Use transaction() for multi-statement atomicity."""
+        """No-op. execute() auto-commits. Use transaction() for multi-statement atomicity."""
         pass
 
     @contextmanager

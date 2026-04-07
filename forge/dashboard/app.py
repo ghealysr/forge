@@ -1,12 +1,4 @@
-"""
-FORGE Dashboard — FastAPI + Jinja2 + HTMX web interface.
-
-No React, no npm, no build step. Server-rendered with HTMX for interactivity.
-
-Usage:
-    python -m forge.dashboard            # starts on port 8765
-    uvicorn forge.dashboard.app:app      # direct uvicorn invocation
-"""
+"""Web dashboard. FastAPI + Jinja2 + HTMX, no build step."""
 
 from __future__ import annotations
 
@@ -175,7 +167,7 @@ def _append_log(msg: str):
 def _init_enrichment(mode: str, workers: int) -> tuple:
     """Initialize enrichment state and return (db, total) or (None, 0) on error."""
     global _enrichment_stats
-    _append_log(f"Starting enrichment — mode={mode}, workers={workers}")
+    _append_log(f"Starting enrichment: mode={mode}, workers={workers}")
 
     with _enrichment_lock:
         _enrichment_stats["started_at"] = time.time()
@@ -281,7 +273,7 @@ async def page_index(request: Request):
 
 @app.get("/discover", response_class=HTMLResponse)
 async def page_discover(request: Request):
-    """Discovery page — search for businesses by ZIP."""
+    """Discovery page. Search for businesses by ZIP."""
     return templates.TemplateResponse(
         "discover.html",
         {
@@ -792,7 +784,7 @@ async def api_settings(request: Request):
     except ImportError:
         return HTMLResponse(
             '<div class="forge-card text-red-400 text-center py-3">'
-            "Could not import forge.config — settings not saved</div>"
+            "Could not import forge.config, settings not saved</div>"
         )
     except Exception as e:
         return HTMLResponse(

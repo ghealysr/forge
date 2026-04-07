@@ -1,27 +1,6 @@
-"""
-FORGE MCP Server — Exposes FORGE tools to Claude Code via Model Context Protocol.
+"""MCP server that exposes FORGE tools over JSON-RPC on stdin/stdout.
 
-Implements the MCP JSON-RPC protocol over stdin/stdout so Claude Code can
-discover businesses, enrich records, search the database, get stats, and export
-data directly through tool calls.
-
-No external MCP SDK required — uses the standard JSON-RPC transport directly.
-
-Usage:
-    forge mcp-server          # Started by Claude Code automatically
-    python mcp_server.py      # Direct execution for testing
-
-Configuration in ~/.claude.json:
-    {
-      "mcpServers": {
-        "forge": {
-          "command": "forge",
-          "args": ["mcp-server"]
-        }
-      }
-    }
-
-Dependencies: forge.db (ForgeDB), forge.config (ForgeConfig)
+No external MCP SDK needed. See README for config.
 """
 
 from __future__ import annotations
@@ -34,7 +13,7 @@ import traceback
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# All logging goes to stderr — stdout is the MCP transport
+# All logging goes to stderr; stdout is the MCP transport
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",

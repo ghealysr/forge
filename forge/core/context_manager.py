@@ -1,18 +1,4 @@
-"""
-FORGE Context Manager — Conversation state and auto-compaction.
-
-Implements conversation context management with auto-compaction.
-  - Maintains conversation history as a list of messages
-  - Tracks approximate token count
-  - When context approaches the limit, summarizes old messages
-  - Preserves the system prompt and recent messages
-
-Critical for local models with limited context windows (8K-32K).
-Without compaction, the agent loop would fail after a few turns.
-
-Dependencies: None (uses model adapter for summarization)
-Depended on by: agent_loop.py
-"""
+"""Conversation context with auto-compaction for models with limited context windows."""
 
 from __future__ import annotations
 
@@ -167,7 +153,7 @@ class ContextManager:
         self._messages = [
             Message(
                 role="user",
-                content=f"[CONTEXT SUMMARY — compaction #{self._compaction_count}]\n{summary}",
+                content=f"[CONTEXT SUMMARY - compaction #{self._compaction_count}]\n{summary}",
                 metadata={"is_compaction": True, "summarized_messages": len(old_messages)},
             ),
         ] + recent_messages

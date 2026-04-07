@@ -1,19 +1,4 @@
-"""FORGE error hierarchy.
-
-All FORGE-specific exceptions inherit from ForgeError.
-Use these instead of bare Exception for meaningful error handling.
-
-Public API:
-    ForgeError -- base class
-    ConfigError -- invalid/missing configuration
-    DatabaseError -- database operation failed
-    TransactionError -- transaction commit/rollback failed
-    ImportError_ -- CSV/data import failed (underscore to avoid shadowing builtin)
-    EnrichmentError -- enrichment pipeline error
-    AdapterError -- model adapter error (Ollama/Claude)
-    DiscoveryError -- Overture/business discovery error
-    ExportError -- data export failed
-"""
+"""Exception hierarchy. All FORGE exceptions inherit from ForgeError."""
 
 
 class ForgeError(Exception):

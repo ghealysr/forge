@@ -1,1 +1,1 @@
-"""FORGE Adapters — Model interface layer (Claude, Ollama, llama.cpp, vLLM)."""
+"""Model adapters (Claude, Ollama, llama.cpp, vLLM)."""

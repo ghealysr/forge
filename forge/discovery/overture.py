@@ -216,7 +216,7 @@ class OvertureDiscovery:
 
         safe_industry = re.sub(r"[^a-zA-Z0-9_\-\s]", "", industry.lower().strip())
         if not safe_industry:
-            logger.warning("Industry '%s' rejected — invalid characters.", industry)
+            logger.warning("Industry '%s' rejected, invalid characters.", industry)
             return ""
         logger.info(
             "Industry '%s' has no mapping; filtering raw category (sanitized: '%s').",

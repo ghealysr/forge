@@ -1,4 +1,4 @@
-"""Tests for forge.cli — utility functions, color helpers, ProgressBar, parser."""
+"""Tests for forge.cli utility functions."""
 
 import os
 from unittest.mock import patch

@@ -1,1 +1,1 @@
-"""FORGE Enrichment — Business data enrichment pipeline."""
+"""Business data enrichment pipeline."""

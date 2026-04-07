@@ -1,16 +1,6 @@
-"""
-FORGE Database Tool — Database operations for enrichment.
+"""Database tools for querying and writing enrichment data.
 
-Provides tools for the agent loop to:
-  - Query businesses that need enrichment
-  - Write enrichment results back to the database
-  - Track enrichment progress
-
-Uses ForgeDB abstraction layer for backend-agnostic operations.
-All queries use parameterized placeholders — NEVER f-strings.
-
-Dependencies: forge.db (ForgeDB)
-Depended on by: enrichment pipeline, agent loop
+All queries use parameterized placeholders, never f-strings.
 """
 
 from __future__ import annotations
@@ -206,7 +196,7 @@ class WriteEnrichmentTool(Tool):
     Tool: Write enrichment results to the database.
 
     The agent calls this after processing a business to save results.
-    Uses COALESCE pattern — never overwrites existing non-null values.
+    Uses COALESCE pattern, never overwrites existing non-null values.
     """
 
     def __init__(self, db_pool: DatabasePool):
@@ -241,7 +231,7 @@ class WriteEnrichmentTool(Tool):
             "required": ["business_id", "updates"],
         }
 
-    # Allowed fields for enrichment — prevents injection
+    # Allowed fields for enrichment, prevents injection
     ALLOWED_FIELDS = {
         "email",
         "industry",

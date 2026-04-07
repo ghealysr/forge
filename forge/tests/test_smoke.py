@@ -1,4 +1,4 @@
-"""Smoke tests for FORGE — verify basic functionality."""
+"""Smoke tests for FORGE."""
 
 import csv
 import os

@@ -1,17 +1,6 @@
-"""
-FORGE Web Scraper Tool — Async website scraping for email and data extraction.
+"""Async web scraper for email extraction, tech stack detection, and SSL checks.
 
-Provides high-throughput async scraping via aiohttp:
-  - Six-layer email extraction: mailto → regex → Cloudflare decode → JSON-LD → obfuscation decode → contact page crawl
-  - Tech stack detection from HTTP headers and HTML
-  - SSL validation, CMS detection, site speed (TTFB)
-  - Rate limiting: 50 req/sec global, 2 per host
-
-Uses aiohttp with TCPConnector for connection pooling.
-Respects robots.txt and rate limits per FORGE_WORKFLOW.md.
-
-Dependencies: aiohttp, aiodns, aiolimiter
-Depended on by: enrichment pipeline
+Uses aiohttp with connection pooling. Rate-limited to 50 req/s global, 2/host.
 """
 
 from __future__ import annotations
@@ -605,7 +594,7 @@ class WebScrapeTool:
         self._scraper = AsyncWebScraper(total_timeout=timeout)
 
     def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Synchronous scrape — runs the async scraper in an event loop."""
+        """Synchronous wrapper that runs the async scraper in an event loop."""
         url = arguments.get("url", "")
         try:
             try:

@@ -1,4 +1,4 @@
-"""Tests for forge.core.tool_registry — tool definitions and dispatch."""
+"""Tests for forge.core.tool_registry."""
 
 import pytest
 

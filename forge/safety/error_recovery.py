@@ -1,16 +1,4 @@
-"""
-FORGE Error Recovery & Corruption Prevention — Guardrails for database writes.
-
-Provides:
-  - Field validation before write (length, type, range)
-  - Enrichment log table (before/after values for rollback)
-  - Batch failure threshold (>10% fails → pause)
-  - Rollback by timestamp range
-  - COALESCE enforcement (never overwrite non-null with null)
-
-Dependencies: psycopg2
-Depended on by: enrichment/pipeline.py
-"""
+"""Field validation, batch failure tracking, and rollback for enrichment writes."""
 
 from __future__ import annotations
 

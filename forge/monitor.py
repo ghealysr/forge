@@ -1,15 +1,4 @@
-"""
-FORGE Monitor — Hourly health check that auto-restarts crashed processes.
-
-Checks:
-  1. All services are running (platform-aware)
-  2. DB enrichment progress since last check
-  3. Log files for errors
-  4. Restarts any crashed process
-
-Usage:
-    python -m forge.monitor
-"""
+"""Health monitor that checks running services and restarts crashed processes."""
 
 import json
 import logging
@@ -206,10 +195,10 @@ def _check_all_services(current: dict) -> None:
         status = check_service_running(label)
         current["services"][label] = status
         if status["running"]:
-            logger.info("[OK] %s — PID %s", svc_info["name"], status["pid"])
+            logger.info("[OK] %s - PID %s", svc_info["name"], status["pid"])
         else:
             logger.warning(
-                "[DOWN] %s — exit code %s", svc_info["name"], status.get("exit_code", "unknown")
+                "[DOWN] %s - exit code %s", svc_info["name"], status.get("exit_code", "unknown")
             )
             log_tail = tail_log(svc_info["log"])
             if log_tail:
@@ -246,9 +235,9 @@ def _log_db_stats(db_stats: dict, previous: dict) -> None:
 
 
 def run_monitor():
-    """Main monitoring loop — runs once per invocation."""
+    """Main monitoring loop. Runs once per invocation."""
     logger.info("=" * 60)
-    logger.info("FORGE MONITOR CHECK — %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info("FORGE MONITOR CHECK %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 60)
 
     previous = load_previous_status()

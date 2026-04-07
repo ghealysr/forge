@@ -1,34 +1,6 @@
-"""
-FORGE Enrichment Pipeline — Orchestrates the full business enrichment workflow.
+"""Enrichment pipeline: web scraping + AI enrichment in parallel tracks.
 
-Two parallel tracks:
-  Track 1: Web Intelligence (async aiohttp, no LLM)
-    - Website scraping for emails (3-layer: mailto, regex, contact page)
-    - SSL validation, tech stack detection, CMS detection
-    - Site speed (TTFB)
-    - Rate: ~80K sites/day with 50 concurrent workers
-
-  Track 2: AI Enrichment (Gemma 26B-A4B via Ollama)
-    - AI summary generation
-    - Industry classification (20-category whitelist)
-    - Health score reasoning
-    - Pain point identification
-    - Rate: ~7K-20K/day depending on batch size
-
-Both tracks:
-  - Write results immediately after each business (no batching in memory)
-  - Use COALESCE pattern (never overwrite existing good data)
-  - Track enrichment state per-record (last_enriched_at, enrichment_attempts)
-  - Support --resume flag to skip already-enriched records
-  - Log every enrichment with business_id for audit trail
-
-Dependencies:
-  - forge.adapters.ollama (Gemma 26B-A4B interface)
-  - forge.tools.database (DB connection pool)
-  - forge.tools.web_scraper (async aiohttp scraper)
-  - forge.core.output_parser (JSON extraction from model output)
-
-Depended on by: __main__.py (entry point)
+Writes results immediately per-record using COALESCE (never overwrites good data).
 """
 
 from __future__ import annotations
@@ -180,7 +152,7 @@ class EnrichmentPipeline:
         self._running = True
         self._stats = EnrichmentStats(start_time=time.time())
         logger.info(
-            "Enrichment pipeline starting — mode=%s, state=%s, max=%s, workers=%d, resume=%s",
+            "Enrichment pipeline starting: mode=%s, state=%s, max=%s, workers=%d, resume=%s",
             mode,
             state_filter or "all",
             max_records or "unlimited",

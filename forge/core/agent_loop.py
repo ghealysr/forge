@@ -1,28 +1,4 @@
-"""
-FORGE Agent Loop — The core execution engine.
-
-Implements the core agentic execution loop.
-  1. Send conversation + tools to model
-  2. Parse response for tool calls
-  3. Execute tools
-  4. Feed results back
-  5. Check stopping conditions
-  6. Auto-compact if context too long
-  7. Repeat
-
-This is the single most important file in FORGE.
-Everything else plugs into this loop.
-
-Dependencies:
-  - adapters/ (model interface)
-  - tools/ (tool registry)
-  - core/context_manager.py (conversation management)
-  - core/output_parser.py (extract tool calls from model output)
-
-Depended on by:
-  - enrichment/ (uses this loop to run enrichment agents)
-  - coordinator.py (spawns multiple loops in parallel)
-"""
+"""Core agent loop: send prompt, parse tool calls, execute, feed back, repeat."""
 
 from __future__ import annotations
 
@@ -49,7 +25,7 @@ class AgentConfig:
     max_turns: int = 200
     max_retries_per_tool: int = 3
     max_consecutive_errors: int = 5
-    context_window: int = 8192  # tokens — conservative for 8B model
+    context_window: int = 8192  # tokens, conservative for 8B model
     compact_threshold: float = 0.75  # compact when context is 75% full
     timeout_per_turn: float = 120.0  # seconds
     stop_sequences: List[str] = field(
@@ -129,7 +105,7 @@ class AgentLoop:
 
         tool_defs = self._tools.get_tool_definitions()
         logger.info(
-            "Agent starting — model=%s, tools=%d, max_turns=%d",
+            "Agent starting: model=%s, tools=%d, max_turns=%d",
             self._config.model,
             len(tool_defs),
             self._config.max_turns,
@@ -140,7 +116,7 @@ class AgentLoop:
         elapsed = time.time() - start_time
         result = self._build_result(final_output, elapsed)
         logger.info(
-            "Agent finished — status=%s, turns=%d, tool_calls=%d, time=%.1fs, errors=%d",
+            "Agent finished: status=%s, turns=%d, tool_calls=%d, time=%.1fs, errors=%d",
             result.status,
             result.turns_used,
             result.tool_calls_made,
@@ -199,7 +175,7 @@ class AgentLoop:
             return response
         except Exception as e:  # Non-critical: model call failed, apply backoff and retry
             self._consecutive_errors += 1
-            error_msg = f"Turn {self._turn_count}: model error — {e}"
+            error_msg = f"Turn {self._turn_count}: model error - {e}"
             logger.error(error_msg)
             self._errors.append(error_msg)
             if self._consecutive_errors < self._config.max_consecutive_errors:
@@ -315,6 +291,6 @@ class AgentLoop:
                         return "failed"
                     if "NEED_HUMAN" in final_output:
                         return "needs_human"
-            # Model responded but no stop signal — ended without explicit completion
+            # Model responded but no stop signal, ended without explicit completion
             return "no_stop_signal"
         return "completed"

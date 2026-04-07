@@ -1,4 +1,4 @@
-"""Tests for forge.importers — FCC ULS, NPI Registry, SMTP Verifier."""
+"""Tests for forge.importers."""
 
 from forge.importers.fcc_uls import (
     BUSINESS_TYPES,

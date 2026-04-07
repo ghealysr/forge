@@ -1,14 +1,4 @@
-"""
-FORGE Enrichment Prompts — Optimized system prompts for Gemma 26B-A4B.
-
-Each prompt includes:
-  - Exact JSON schema example
-  - Strict output format specification
-  - Concise instructions (Gemma 26B has limited context vs Claude)
-  - Field validation constraints
-
-Depended on by: enrichment/pipeline.py
-"""
+"""Prompt templates for AI enrichment (summary, industry, health score, pain points)."""
 
 from __future__ import annotations
 

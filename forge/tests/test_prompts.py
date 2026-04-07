@@ -1,4 +1,4 @@
-"""Tests for forge.enrichment.prompts — prompt templates for AI enrichment."""
+"""Tests for forge.enrichment.prompts."""
 
 from forge.enrichment.prompts import (
     INDUSTRY_LIST,

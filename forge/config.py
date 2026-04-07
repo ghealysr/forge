@@ -269,7 +269,7 @@ class ForgeConfig:
 
         cls._apply_layers(config, layers)
         logger.info(
-            "Config loaded — backend=%s, adapter=%s, workers=%d",
+            "Config loaded: backend=%s, adapter=%s, workers=%d",
             config.db_backend,
             config.adapter,
             config.workers,
@@ -438,7 +438,7 @@ class ForgeConfig:
 
             return OllamaAdapter(base_url=self.ollama_url, default_model=self.ollama_model)
         if self.adapter == "none":
-            logger.info("Adapter explicitly set to 'none' — email-only mode")
+            logger.info("Adapter explicitly set to 'none', email-only mode")
             return None
 
         if self.anthropic_api_key:
@@ -450,7 +450,7 @@ class ForgeConfig:
         if adapter:
             return adapter
 
-        logger.info("No AI adapter available — running in email-only mode")
+        logger.info("No AI adapter available, running in email-only mode")
         return None
 
 

@@ -1,4 +1,4 @@
-"""Tests for forge.core.output_parser — tool call extraction and text parsing."""
+"""Tests for forge.core.output_parser."""
 
 import pytest
 

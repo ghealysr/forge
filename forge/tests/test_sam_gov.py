@@ -1,4 +1,4 @@
-"""Tests for forge.importers.sam_gov — SAM.gov entity parsing and normalization."""
+"""Tests for forge.importers.sam_gov."""
 
 from forge.importers.sam_gov import (
     _build_params,

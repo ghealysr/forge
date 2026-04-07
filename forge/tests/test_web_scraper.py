@@ -1,4 +1,4 @@
-"""Tests for forge.tools.web_scraper — pure function tests, no network calls."""
+"""Tests for forge.tools.web_scraper (no network calls)."""
 
 import pytest
 

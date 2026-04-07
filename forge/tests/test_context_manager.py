@@ -1,4 +1,4 @@
-"""Tests for forge.core.context_manager — conversation state and auto-compaction."""
+"""Tests for forge.core.context_manager."""
 
 from forge.core.context_manager import ContextManager, Message
 

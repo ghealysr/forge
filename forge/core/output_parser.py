@@ -1,17 +1,6 @@
-"""
-FORGE Output Parser — Extracts tool calls and text from model responses.
+"""Extracts tool calls and text from model responses.
 
-Handles multiple output formats:
-  1. Ollama native tool calling (structured JSON)
-  2. Manual JSON extraction from text (fallback for models without native tool support)
-  3. Markdown code block extraction
-
-The parser is intentionally forgiving — it tries multiple strategies
-before giving up. Local models are less reliable than cloud APIs at
-producing perfectly formatted tool calls.
-
-Dependencies: None
-Depended on by: agent_loop.py
+Tries Ollama native format first, falls back to regex JSON extraction.
 """
 
 from __future__ import annotations

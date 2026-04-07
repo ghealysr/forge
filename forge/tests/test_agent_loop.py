@@ -1,4 +1,4 @@
-"""Tests for forge.core.agent_loop — the core execution engine."""
+"""Tests for forge.core.agent_loop."""
 
 from unittest.mock import MagicMock, patch
 
@@ -112,7 +112,7 @@ class TestAgentLoopConstruction:
 
 
 # ---------------------------------------------------------------------------
-# Tests: run() — text only, no tool calls
+# Tests: run() - text only, no tool calls
 # ---------------------------------------------------------------------------
 
 
@@ -160,7 +160,7 @@ class TestRunTextOnly:
 
 
 # ---------------------------------------------------------------------------
-# Tests: run() — with tool calls
+# Tests: run() - with tool calls
 # ---------------------------------------------------------------------------
 
 

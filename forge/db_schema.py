@@ -1,18 +1,4 @@
-"""
-FORGE Database Schema & Backends — Column mappings, indexes, field sets, and backend classes.
-
-Extracted from db.py to keep that file under 800 lines.
-
-Contains:
-  - COLUMN_ALIASES: CSV header -> canonical column name mapping
-  - BUSINESS_COLUMNS: table schema per backend (SQLite / PostgreSQL)
-  - BUSINESS_INDEXES: indexes to create on the businesses table
-  - ENRICHABLE_FIELDS: fields allowed for enrichment writes
-  - JSON_COLUMNS, BOOLEAN_COLUMNS: type hints for value preparation
-  - _SQLiteBackend, _PostgresBackend: database backend implementations
-
-Depended on by: forge.db
-"""
+"""Database schema definitions, column mappings, and backend classes for SQLite/PostgreSQL."""
 
 from __future__ import annotations
 

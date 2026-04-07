@@ -1,4 +1,4 @@
-"""Tests for forge.enrichment.pipeline — enrichment orchestration."""
+"""Tests for forge.enrichment.pipeline."""
 
 import time
 from unittest.mock import MagicMock, patch

@@ -1,31 +1,6 @@
-"""
-FORGE SAM.gov Importer — Matches federal registrant data to business records.
+"""SAM.gov importer. Matches federal contractor registrations to business records.
 
-Queries the SAM.gov Entity Management API (v3) for registered entities and
-enriches our businesses table with contact information extracted from
-Points of Contact (POC) records.
-
-SAM.gov is the System for Award Management — every business that wants to
-contract with the federal government must register here.  The API exposes
-registrant name, physical address, NAICS codes, and POC emails/phones.
-
-API details:
-  - Base URL: https://api.sam.gov/entity-information/v3/entities
-  - Free API key from api.data.gov
-  - Rate limit: 1000 requests/hour (1 req per 3.6 s)
-  - Returns paginated JSON with nested registrant + POC structures
-
-Matching strategy:
-  Normalized business name + state (same normalize_name() as fcc_uls.py)
-
-Writes matched data using COALESCE pattern:
-  - email, contact_name, contact_email  (from POC fields)
-  - email_source = 'sam_gov'
-
-Usage:
-    python -m forge.importers.sam_gov --api-key YOUR_KEY
-    python -m forge.importers.sam_gov --state CA --limit 500
-    python -m forge.importers.sam_gov --resume
+Pulls contact info from Points of Contact via the SAM.gov Entity API (free key).
 """
 
 from __future__ import annotations

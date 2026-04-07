@@ -1,19 +1,6 @@
-"""
-FORGE NPI Registry Importer — Matches healthcare providers to business records.
+"""NPI Registry importer. Enriches healthcare businesses with NPI numbers and specialties.
 
-Uses the free NPI Registry API (no key required) to enrich healthcare businesses
-with: NPI number, provider taxonomy (specialty), contact name.
-
-The NPI Registry has ~8M provider records (doctors, dentists, chiropractors,
-therapists, veterinarians, etc.).
-
-Matching strategy:
-  1. Phone number (exact 10-digit match)
-  2. Organization name + state + city
-
-Usage:
-    python -m forge.importers.npi_registry --state CA --limit 1000
-    python -m forge.importers.npi_registry --all-states
+Queries the free NPPES API (no key required), matches by phone or name+location.
 """
 
 from __future__ import annotations

@@ -1,17 +1,4 @@
-"""
-FORGE FCC ULS Importer — Matches FCC licensee emails to business records.
-
-Downloads EN.dat files from FCC ULS complete dumps, extracts business entities
-with email addresses, and matches them to our 10.5M business records by:
-  1. Phone number (10-digit exact match — highest confidence)
-  2. Business name + state (normalized fuzzy match — medium confidence)
-
-Writes matched emails to Railway PostgreSQL using COALESCE pattern.
-Supports resume from checkpoint (--resume flag).
-
-Usage:
-    python -m forge.importers.fcc_uls --data-dir forge/data/fcc --resume
-"""
+"""FCC ULS importer. Matches licensee emails to businesses by phone or name+state."""
 
 from __future__ import annotations
 
@@ -209,7 +196,7 @@ def _flush_updates(db, update_batch: List[tuple], stats: Dict[str, int]) -> None
     Flush a batch of updates to the DB in a single transaction.
 
     Each tuple: (email, source_tag, business_id, match_type)
-    Uses COALESCE — won't overwrite existing non-null emails.
+    Uses COALESCE so it won't overwrite existing non-null emails.
 
     Args:
         db: ForgeDB instance.

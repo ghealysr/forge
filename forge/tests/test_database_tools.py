@@ -1,4 +1,4 @@
-"""Tests for forge.tools.database — database tool wrappers and DatabasePool."""
+"""Tests for forge.tools.database."""
 
 from unittest.mock import MagicMock
 

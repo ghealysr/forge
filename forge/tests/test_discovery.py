@@ -1,4 +1,4 @@
-"""Tests for forge.discovery — ZIP centroid lookup and Overture Maps helpers."""
+"""Tests for forge.discovery."""
 
 import pytest
 

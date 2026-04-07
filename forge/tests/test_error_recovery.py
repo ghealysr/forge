@@ -1,4 +1,4 @@
-"""Tests for forge.safety.error_recovery — field validation and batch failure tracking."""
+"""Tests for forge.safety.error_recovery."""
 
 from forge.safety.error_recovery import (
     FIELD_VALIDATORS,

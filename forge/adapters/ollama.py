@@ -1,18 +1,4 @@
-"""
-FORGE Ollama Adapter — Interface to Ollama's local inference API.
-
-Provides a clean abstraction over Ollama's REST API at localhost:11434.
-Handles both chat completions (with tool support) and simple generation.
-
-Supports:
-  - Tool calling via Ollama's native tool format
-  - Streaming and non-streaming responses
-  - Model health checking
-  - Token counting estimation
-
-Dependencies: httpx (async HTTP client)
-Depended on by: agent_loop.py, enrichment workers
-"""
+"""Ollama adapter for local inference via REST API at localhost:11434."""
 
 from __future__ import annotations
 

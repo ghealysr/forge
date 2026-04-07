@@ -1,14 +1,4 @@
-"""
-FORGE Tool Registry — Manages tool definitions and dispatch.
-
-Manages tool definitions, registration, and dispatch.
-  - Tools register with a name, description, parameter schema, and execute function
-  - Registry provides tool definitions for the model prompt
-  - Registry dispatches tool calls to the correct handler
-
-Dependencies: None (this is a leaf module)
-Depended on by: agent_loop.py, enrichment workers
-"""
+"""Tool registry. Register tools with schemas, dispatch calls by name."""
 
 from __future__ import annotations
 
@@ -70,7 +60,7 @@ class Tool(ABC):
             Result of the tool execution (dict, string, or any serializable type).
 
         Raises:
-            Exception on failure — the agent loop handles retries.
+            Exception on failure. The agent loop handles retries.
         """
         ...
 

@@ -1,20 +1,6 @@
-"""
-FORGE Haiku Audit Agent — Verification layer for Gemma's enrichment output.
+"""Haiku audit agent that spot-checks AI enrichment output for quality.
 
-After every N enrichments (configurable, default 50), samples 3 records
-and sends the original business data + Gemma's output to Claude Haiku
-for validation.
-
-Checks:
-  - Is the summary accurate and factual?
-  - Is the industry classification correct?
-  - Is the health score reasonable given the data?
-  - Are the pain points plausible?
-
-If >20% of audits fail, PAUSES enrichment and logs an alert.
-
-Dependencies: anthropic (Claude API)
-Depended on by: enrichment/pipeline.py
+Samples records at configurable intervals and pauses the pipeline if quality drops.
 """
 
 from __future__ import annotations
@@ -116,7 +102,7 @@ class HaikuAuditAgent:
         self._paused = False
 
         logger.info(
-            "Haiku Audit Agent initialized — interval=%d, sample=%d, model=%s",
+            "Haiku Audit Agent initialized: interval=%d, sample=%d, model=%s",
             audit_interval,
             sample_size,
             HAIKU_MODEL,

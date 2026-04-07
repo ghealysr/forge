@@ -1,1 +1,1 @@
-"""FORGE Tools — Database, web scraping, email extraction, and more."""
+"""Database, web scraping, and email extraction tools."""
