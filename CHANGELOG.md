@@ -5,7 +5,22 @@ All notable changes to FORGE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-01-01
+## [1.1.0] - 2026-04-07
+
+### Added
+- Test suite expanded: 5 → 131 tests across 7 files (db, config, security, MCP, CLI)
+- Security regression tests covering all 55 bugs from audit rounds
+- ARCHITECTURE.md — component map, data model, transaction model, design decisions
+- SECURITY.md — threat model, hardening measures, audit history
+- CONTRIBUTING.md — dev setup, testing, PR expectations
+- BASELINE.md — quality metrics snapshot for v2.0 transformation
+- Module docstrings on all 38 Python files
+
+### Fixed
+- Eliminated all bare `except:` clauses from production code
+- Removed AI attribution from source files and git history
+
+## [1.0.0] - 2026-04-06
 
 ### Added
 - **Dual database backend** -- SQLite (zero-config default) and PostgreSQL (production scale) behind a unified `ForgeDB` interface
