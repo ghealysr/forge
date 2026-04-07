@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from forge.errors import AdapterError
 from typing import Any, Dict, List, Optional
 
 import httpx

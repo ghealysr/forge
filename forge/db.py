@@ -8,10 +8,10 @@ from __future__ import annotations
 import json
 import logging
 import threading
-
-from forge.errors import DatabaseError, TransactionError
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+from forge.errors import DatabaseError
 
 logger = logging.getLogger("forge.db")
 
