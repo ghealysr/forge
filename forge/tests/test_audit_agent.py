@@ -17,6 +17,7 @@ from forge.safety.audit_agent import (
 # Tests: AuditResult
 # ---------------------------------------------------------------------------
 
+
 class TestAuditResult:
     def test_construction(self):
         r = AuditResult(
@@ -74,6 +75,7 @@ class TestAuditResult:
 # Tests: AuditStats
 # ---------------------------------------------------------------------------
 
+
 class TestAuditStats:
     def test_empty_stats(self):
         stats = AuditStats()
@@ -114,6 +116,7 @@ class TestAuditStats:
 # ---------------------------------------------------------------------------
 # Tests: Constants
 # ---------------------------------------------------------------------------
+
 
 class TestAuditConstants:
     def test_default_audit_interval(self):

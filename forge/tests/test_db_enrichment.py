@@ -11,6 +11,7 @@ from forge.db_schema import COLUMN_ALIASES
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def db(tmp_path):
     """Fresh SQLite database with schema."""
@@ -35,6 +36,7 @@ def biz_id(db):
 # ---------------------------------------------------------------------------
 # Tests: write_enrichment
 # ---------------------------------------------------------------------------
+
 
 class TestWriteEnrichment:
     def test_basic_write(self, db, biz_id):
@@ -65,23 +67,31 @@ class TestWriteEnrichment:
         assert result["status"] == "no_valid_fields"
 
     def test_multiple_fields(self, db, biz_id):
-        result = db.write_enrichment(biz_id, {
-            "email": "info@dental.com",
-            "industry": "dentist",
-            "health_score": 75,
-        })
+        result = db.write_enrichment(
+            biz_id,
+            {
+                "email": "info@dental.com",
+                "industry": "dentist",
+                "health_score": 75,
+            },
+        )
         assert result["status"] == "updated"
         assert len(result["fields_updated"]) == 3
 
     def test_json_field_write(self, db, biz_id):
-        result = db.write_enrichment(biz_id, {
-            "tech_stack": '["wordpress", "google-analytics"]',
-        })
+        result = db.write_enrichment(
+            biz_id,
+            {
+                "tech_stack": '["wordpress", "google-analytics"]',
+            },
+        )
         assert result["status"] == "updated"
 
     def test_updates_timestamp(self, db, biz_id):
         db.write_enrichment(biz_id, {"email": "info@dental.com"})
-        rows = db.fetch_dicts("SELECT updated_at, last_enriched_at FROM businesses WHERE id = ?", (biz_id,))
+        rows = db.fetch_dicts(
+            "SELECT updated_at, last_enriched_at FROM businesses WHERE id = ?", (biz_id,)
+        )
         assert rows[0]["updated_at"] is not None
         assert rows[0]["last_enriched_at"] is not None
 
@@ -99,6 +109,7 @@ class TestWriteEnrichment:
 # ---------------------------------------------------------------------------
 # Tests: write_enrichment_batch
 # ---------------------------------------------------------------------------
+
 
 class TestWriteEnrichmentBatch:
     def test_batch_write_multiple(self, db):
@@ -135,26 +146,31 @@ class TestWriteEnrichmentBatch:
 # Tests: upsert_business
 # ---------------------------------------------------------------------------
 
+
 class TestUpsertBusiness:
     def test_insert_new_business(self, db):
-        bid = db.upsert_business({
-            "name": "New Salon",
-            "city": "Miami",
-            "state": "FL",
-        })
+        bid = db.upsert_business(
+            {
+                "name": "New Salon",
+                "city": "Miami",
+                "state": "FL",
+            }
+        )
         assert bid is not None
         rows = db.fetch_dicts("SELECT name FROM businesses WHERE id = ?", (bid,))
         assert rows[0]["name"] == "New Salon"
 
     def test_upsert_existing_business(self, db, biz_id):
         # Upsert with same id in data dict
-        db.upsert_business({
-            "id": biz_id,
-            "name": "Tampa Dental",
-            "city": "Tampa",
-            "state": "FL",
-            "email": "new@dental.com",
-        })
+        db.upsert_business(
+            {
+                "id": biz_id,
+                "name": "Tampa Dental",
+                "city": "Tampa",
+                "state": "FL",
+                "email": "new@dental.com",
+            }
+        )
 
         rows = db.fetch_dicts("SELECT email FROM businesses WHERE id = ?", (biz_id,))
         # COALESCE: email was NULL, so it gets set
@@ -164,6 +180,7 @@ class TestUpsertBusiness:
 # ---------------------------------------------------------------------------
 # Tests: get_stats
 # ---------------------------------------------------------------------------
+
 
 class TestGetStats:
     def test_stats_on_empty_db(self, db):
@@ -182,6 +199,7 @@ class TestGetStats:
 # Tests: fetch_dicts
 # ---------------------------------------------------------------------------
 
+
 class TestFetchDicts:
     def test_returns_list_of_dicts(self, db, biz_id):
         rows = db.fetch_dicts("SELECT id, name FROM businesses")
@@ -197,6 +215,7 @@ class TestFetchDicts:
 # ---------------------------------------------------------------------------
 # Tests: transaction context manager
 # ---------------------------------------------------------------------------
+
 
 class TestTransaction:
     def test_transaction_commits(self, db, biz_id):
@@ -216,6 +235,7 @@ class TestTransaction:
 # ---------------------------------------------------------------------------
 # Tests: COLUMN_ALIASES
 # ---------------------------------------------------------------------------
+
 
 class TestColumnAliases:
     def test_business_name_alias(self):
@@ -238,10 +258,19 @@ class TestColumnAliases:
 # Tests: ENRICHABLE_FIELDS
 # ---------------------------------------------------------------------------
 
+
 class TestEnrichableFields:
     def test_core_fields_present(self):
-        for field in ["email", "industry", "ai_summary", "health_score",
-                      "tech_stack", "cms_detected", "ssl_valid", "site_speed_ms"]:
+        for field in [
+            "email",
+            "industry",
+            "ai_summary",
+            "health_score",
+            "tech_stack",
+            "cms_detected",
+            "ssl_valid",
+            "site_speed_ms",
+        ]:
             assert field in ENRICHABLE_FIELDS
 
     def test_id_not_enrichable(self):
@@ -251,6 +280,7 @@ class TestEnrichableFields:
 # ---------------------------------------------------------------------------
 # Tests: import_csv
 # ---------------------------------------------------------------------------
+
 
 class TestImportCSV:
     def test_import_csv(self, db, tmp_path):
@@ -282,6 +312,7 @@ class TestImportCSV:
 # Tests: export_csv
 # ---------------------------------------------------------------------------
 
+
 class TestExportCSV:
     def test_export_csv(self, db, biz_id, tmp_path):
         db.write_enrichment(biz_id, {"email": "info@dental.com", "industry": "dentist"})
@@ -291,6 +322,7 @@ class TestExportCSV:
         assert result["row_count"] == 1
 
         import csv
+
         with open(out_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
@@ -302,6 +334,7 @@ class TestExportCSV:
 # ---------------------------------------------------------------------------
 # Tests: Properties
 # ---------------------------------------------------------------------------
+
 
 class TestProperties:
     def test_is_postgres_false_for_sqlite(self, db):

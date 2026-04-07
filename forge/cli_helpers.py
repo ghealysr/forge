@@ -68,6 +68,7 @@ def cyan(text: str) -> str:
 # Progress bar
 # ---------------------------------------------------------------------------
 
+
 class ProgressBar:
     """Simple terminal progress bar using only built-in characters."""
 
@@ -112,6 +113,7 @@ class ProgressBar:
 # Logging setup
 # ---------------------------------------------------------------------------
 
+
 def setup_logging(verbose: bool = False, quiet: bool = False) -> logging.Logger:
     """Configure logging for FORGE CLI."""
     if quiet:
@@ -120,7 +122,9 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> logging.Logger:
         level = logging.DEBUG
     else:
         level = logging.INFO
-    logging.basicConfig(level=level, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S")
+    logging.basicConfig(
+        level=level, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S"
+    )
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
@@ -130,6 +134,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> logging.Logger:
 # ---------------------------------------------------------------------------
 # Error / message helpers
 # ---------------------------------------------------------------------------
+
 
 def die(message: str, hint: str = "", exit_code: int = 1) -> "NoReturn":
     sys.stderr.write(f"{red('Error:')} {message}\n")

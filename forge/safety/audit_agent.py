@@ -43,6 +43,7 @@ FAILURE_THRESHOLD = 0.20
 @dataclass
 class AuditResult:
     """Result of a single Haiku audit check."""
+
     business_id: str
     business_name: str
     passed: bool
@@ -59,6 +60,7 @@ class AuditResult:
 @dataclass
 class AuditStats:
     """Aggregated audit statistics."""
+
     total_audited: int = 0
     total_passed: int = 0
     total_failed: int = 0
@@ -100,6 +102,7 @@ class HaikuAuditAgent:
     ):
         try:
             import anthropic
+
             self._client = anthropic.Anthropic(api_key=api_key)
         except ImportError:
             raise ImportError("anthropic package required: pip install anthropic")
@@ -114,7 +117,9 @@ class HaikuAuditAgent:
 
         logger.info(
             "Haiku Audit Agent initialized — interval=%d, sample=%d, model=%s",
-            audit_interval, sample_size, HAIKU_MODEL,
+            audit_interval,
+            sample_size,
+            HAIKU_MODEL,
         )
 
     @property
@@ -151,8 +156,11 @@ class HaikuAuditAgent:
         """Pause enrichment if failure rate exceeds threshold."""
         if self._stats.failure_rate > FAILURE_THRESHOLD and self._stats.total_audited >= 10:
             self._paused = True
-            logger.critical("AUDIT ALERT: Failure rate %.1f%% exceeds threshold %.1f%%. Enrichment PAUSED.",
-                            self._stats.failure_rate * 100, FAILURE_THRESHOLD * 100)
+            logger.critical(
+                "AUDIT ALERT: Failure rate %.1f%% exceeds threshold %.1f%%. Enrichment PAUSED.",
+                self._stats.failure_rate * 100,
+                FAILURE_THRESHOLD * 100,
+            )
 
     def run_audit(self, state_filter: Optional[str] = None) -> List[AuditResult]:
         """Sample recently enriched records and validate with Haiku."""
@@ -215,16 +223,16 @@ class HaikuAuditAgent:
         return f"""You are a data quality auditor. Validate this AI-generated business enrichment.
 
 ORIGINAL DATA:
-- Name: {business.get('name', 'Unknown')}
-- Address: {business.get('address_line1', '')}, {business.get('city', '')}, {business.get('state', '')} {business.get('zip', '')}
-- Phone: {business.get('phone', 'none')}
-- Website: {business.get('website_url', 'none')}
+- Name: {business.get("name", "Unknown")}
+- Address: {business.get("address_line1", "")}, {business.get("city", "")}, {business.get("state", "")} {business.get("zip", "")}
+- Phone: {business.get("phone", "none")}
+- Website: {business.get("website_url", "none")}
 
 AI-GENERATED ENRICHMENT:
-- Summary: {business.get('ai_summary', 'none')}
-- Industry: {business.get('industry', 'none')}
-- Health Score: {business.get('health_score', 'none')}
-- Pain Points: {json.dumps(business.get('pain_points', []))}
+- Summary: {business.get("ai_summary", "none")}
+- Industry: {business.get("industry", "none")}
+- Health Score: {business.get("health_score", "none")}
+- Pain Points: {json.dumps(business.get("pain_points", []))}
 
 VALIDATE and respond with ONLY this JSON:
 {{"passed": true/false, "issues": ["list of specific issues found"], "confidence": 0.0-1.0, "feedback": "brief explanation"}}

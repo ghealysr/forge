@@ -1,7 +1,5 @@
 """Tests for forge.importers — FCC ULS, NPI Registry, SMTP Verifier."""
 
-
-
 from forge.importers.fcc_uls import (
     BUSINESS_TYPES,
     COL_APPLICANT_TYPE,
@@ -31,6 +29,7 @@ from forge.importers.smtp_verifier import (
 # ---------------------------------------------------------------------------
 # FCC ULS: normalize_phone
 # ---------------------------------------------------------------------------
+
 
 class TestFCCNormalizePhone:
     def test_10_digit_passthrough(self):
@@ -62,6 +61,7 @@ class TestFCCNormalizePhone:
 # ---------------------------------------------------------------------------
 # FCC ULS: normalize_name
 # ---------------------------------------------------------------------------
+
 
 class TestNormalizeName:
     def test_removes_llc(self):
@@ -102,13 +102,21 @@ class TestNormalizeName:
 # FCC ULS: parse_en_file
 # ---------------------------------------------------------------------------
 
+
 class TestParseENFile:
     """Test parsing pipe-delimited FCC EN.dat files."""
 
-    def _make_en_line(self, entity_type="L", applicant_type="C",
-                      name="ACME TELECOM", phone="8135551234",
-                      email="info@acmetelecom.com", state="FL",
-                      city="TAMPA", zip_code="33602"):
+    def _make_en_line(
+        self,
+        entity_type="L",
+        applicant_type="C",
+        name="ACME TELECOM",
+        phone="8135551234",
+        email="info@acmetelecom.com",
+        state="FL",
+        city="TAMPA",
+        zip_code="33602",
+    ):
         """Build a pipe-delimited line with the right column positions."""
         # EN.dat has 24+ columns. We need fields at specific positions.
         fields = [""] * 25
@@ -197,8 +205,7 @@ class TestParseENFile:
         """All BUSINESS_TYPES should be accepted."""
         en_file = tmp_path / "EN.dat"
         lines = [
-            self._make_en_line(applicant_type=bt, name=f"BIZ_{bt}",
-                               email=f"x{bt}@biz.com")
+            self._make_en_line(applicant_type=bt, name=f"BIZ_{bt}", email=f"x{bt}@biz.com")
             for bt in BUSINESS_TYPES
         ]
         en_file.write_text("\n".join(lines) + "\n")
@@ -209,6 +216,7 @@ class TestParseENFile:
 # ---------------------------------------------------------------------------
 # FCC ULS: index builders
 # ---------------------------------------------------------------------------
+
 
 class TestFCCIndexes:
     def test_build_phone_index(self):
@@ -236,6 +244,7 @@ class TestFCCIndexes:
 # NPI Registry: normalize_phone
 # ---------------------------------------------------------------------------
 
+
 class TestNPINormalizePhone:
     def test_10_digit_passthrough(self):
         assert npi_normalize_phone("8135551234") == "8135551234"
@@ -259,6 +268,7 @@ class TestNPINormalizePhone:
 # ---------------------------------------------------------------------------
 # NPI Registry: classify_taxonomy
 # ---------------------------------------------------------------------------
+
 
 class TestClassifyTaxonomy:
     def test_dentist(self):
@@ -301,6 +311,7 @@ class TestClassifyTaxonomy:
 # ---------------------------------------------------------------------------
 # SMTP Verifier: extract_domain
 # ---------------------------------------------------------------------------
+
 
 class TestExtractDomain:
     def test_simple_url(self):

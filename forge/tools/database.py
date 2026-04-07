@@ -48,6 +48,7 @@ class DatabasePool:
             try:
                 import psycopg2
                 import psycopg2.pool
+
                 self._pool = psycopg2.pool.ThreadedConnectionPool(
                     kwargs.get("min_connections", 2),
                     kwargs.get("max_connections", 10),
@@ -61,7 +62,9 @@ class DatabasePool:
                 self._db = None
                 logger.info(
                     "Database pool created: %s:%d/%s",
-                    kwargs["host"], kwargs["port"], kwargs["dbname"],
+                    kwargs["host"],
+                    kwargs["port"],
+                    kwargs["dbname"],
                 )
             except ImportError:
                 raise ImportError(
@@ -156,6 +159,7 @@ class FetchUnenrichedTool(Tool):
     def _fetch_via_psycopg2(self, field: str, state: str, limit: int) -> list:
         """Fetch unenriched rows using legacy psycopg2 pool."""
         import psycopg2.extras
+
         conn = self._pool.get_connection()
         try:
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -186,7 +190,7 @@ class FetchUnenrichedTool(Tool):
         limit = min(arguments.get("limit", 5), 20)
 
         try:
-            db = getattr(self._pool, '_db', None)
+            db = getattr(self._pool, "_db", None)
             if db is not None:
                 rows = self._fetch_via_forgedb(db, field, state, limit)
             else:
@@ -239,12 +243,28 @@ class WriteEnrichmentTool(Tool):
 
     # Allowed fields for enrichment — prevents injection
     ALLOWED_FIELDS = {
-        "email", "industry", "sub_industry", "ai_summary", "health_score",
-        "lead_score", "pain_points", "opportunities", "tech_stack",
-        "cms_detected", "ssl_valid", "mobile_score", "site_speed_ms",
-        "site_quality_score", "social_links", "facebook_url",
-        "instagram_url", "linkedin_url", "twitter_url",
-        "business_hours", "year_established", "employee_estimate",
+        "email",
+        "industry",
+        "sub_industry",
+        "ai_summary",
+        "health_score",
+        "lead_score",
+        "pain_points",
+        "opportunities",
+        "tech_stack",
+        "cms_detected",
+        "ssl_valid",
+        "mobile_score",
+        "site_speed_ms",
+        "site_quality_score",
+        "social_links",
+        "facebook_url",
+        "instagram_url",
+        "linkedin_url",
+        "twitter_url",
+        "business_hours",
+        "year_established",
+        "employee_estimate",
     }
 
     def _write_via_psycopg2(self, business_id: str, safe_updates: dict) -> dict:
@@ -272,7 +292,11 @@ class WriteEnrichmentTool(Tool):
             cur.execute(query, params)
             conn.commit()
             cur.close()
-            return {"status": "updated", "business_id": business_id, "fields_updated": list(safe_updates.keys())}
+            return {
+                "status": "updated",
+                "business_id": business_id,
+                "fields_updated": list(safe_updates.keys()),
+            }
         except Exception as e:
             conn.rollback()
             logger.error("write_enrichment failed for %s: %s", business_id, e)
@@ -289,7 +313,7 @@ class WriteEnrichmentTool(Tool):
         if not safe_updates:
             return {"status": "no_valid_fields", "rejected": list(updates.keys())}
 
-        db = getattr(self._pool, '_db', None)
+        db = getattr(self._pool, "_db", None)
         if db is not None:
             try:
                 return db.write_enrichment(business_id, safe_updates, source="tool")

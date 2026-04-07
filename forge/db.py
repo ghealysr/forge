@@ -32,6 +32,7 @@ from forge.db_schema import (  # noqa: E402
 
 # ── Main Interface ───────────────────────────────────────────────────────────
 
+
 class ForgeDB(_ForgeDBIOMixin):
     """Unified database interface for FORGE (SQLite or PostgreSQL)."""
 
@@ -44,7 +45,9 @@ class ForgeDB(_ForgeDBIOMixin):
     def from_config(cls, config: Dict[str, Any]) -> "ForgeDB":
         """Create a ForgeDB from config. Auto-detects SQLite vs PostgreSQL."""
         if "db_path" in config:
-            backend: Union[_SQLiteBackend, _PostgresBackend] = _SQLiteBackend(db_path=config["db_path"])
+            backend: Union[_SQLiteBackend, _PostgresBackend] = _SQLiteBackend(
+                db_path=config["db_path"]
+            )
             return cls(backend)
         elif "db_host" in config:
             backend = _PostgresBackend(
@@ -115,9 +118,7 @@ class ForgeDB(_ForgeDBIOMixin):
         with self._backend.write_connection() as conn:
             conn.execute(ddl)
             for idx_name, idx_col in BUSINESS_INDEXES:
-                conn.execute(
-                    f"CREATE INDEX IF NOT EXISTS {idx_name} ON businesses ({idx_col})"
-                )
+                conn.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON businesses ({idx_col})")
             conn.commit()
 
     def _ensure_schema_pg(self) -> None:
@@ -134,9 +135,7 @@ class ForgeDB(_ForgeDBIOMixin):
             cur.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
             cur.execute(ddl)
             for idx_name, idx_col in BUSINESS_INDEXES:
-                cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS {idx_name} ON businesses ({idx_col})"
-                )
+                cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON businesses ({idx_col})")
             conn.commit()
             cur.close()
 
@@ -166,7 +165,11 @@ class ForgeDB(_ForgeDBIOMixin):
 
         safe_updates = {k: v for k, v in updates.items() if k in ENRICHABLE_FIELDS}
         if not safe_updates:
-            return {"status": "no_valid_fields", "business_id": business_id, "rejected": list(updates.keys())}
+            return {
+                "status": "no_valid_fields",
+                "business_id": business_id,
+                "rejected": list(updates.keys()),
+            }
 
         try:
             with self.transaction() as tx:
@@ -177,14 +180,25 @@ class ForgeDB(_ForgeDBIOMixin):
                 params.append(business_id)
                 tx.execute(query, tuple(params))
 
-            logger.debug("Enrichment written: biz=%s source=%s fields=%s", business_id, source, list(safe_updates.keys()))
-            return {"status": "updated", "business_id": business_id, "fields_updated": list(safe_updates.keys())}
+            logger.debug(
+                "Enrichment written: biz=%s source=%s fields=%s",
+                business_id,
+                source,
+                list(safe_updates.keys()),
+            )
+            return {
+                "status": "updated",
+                "business_id": business_id,
+                "fields_updated": list(safe_updates.keys()),
+            }
         except Exception as e:  # Non-critical: return error dict instead of crashing caller
             logger.error("write_enrichment failed for %s: %s", business_id, e)
             return {"status": "error", "business_id": business_id, "error": str(e)}
 
     def _build_enrichment_query(
-        self, safe_updates: Dict[str, Any], ph: str,
+        self,
+        safe_updates: Dict[str, Any],
+        ph: str,
     ) -> tuple:
         """Build SET clauses and params for an enrichment UPDATE.
 
@@ -242,12 +256,18 @@ class ForgeDB(_ForgeDBIOMixin):
                     except Exception as e:  # Non-critical: count error, continue batch
                         errors += 1
                         logger.warning("Batch write failed for %s: %s", business_id, e)
-            logger.debug("Batch enrichment written: %d/%d records, source=%s", updated, len(batch), source)
+            logger.debug(
+                "Batch enrichment written: %d/%d records, source=%s", updated, len(batch), source
+            )
         except Exception as e:  # Non-critical: return error dict with partial results
             logger.error("write_enrichment_batch failed: %s", e)
-            return {"status": "error", "updated": updated,
-                    "errors": errors + (len(batch) - updated - errors),
-                    "total": len(batch), "error": str(e)}
+            return {
+                "status": "error",
+                "updated": updated,
+                "errors": errors + (len(batch) - updated - errors),
+                "total": len(batch),
+                "error": str(e),
+            }
 
         return {"status": "completed", "updated": updated, "errors": errors, "total": len(batch)}
 
@@ -275,7 +295,11 @@ class ForgeDB(_ForgeDBIOMixin):
                 conditions.append("(tech_stack IS NULL OR tech_stack = '')")
         elif mode == "all":
             or_parts = ["(email IS NULL OR email = '')", "(ai_summary IS NULL OR ai_summary = '')"]
-            or_parts.append("(tech_stack IS NULL)" if self.is_postgres else "(tech_stack IS NULL OR tech_stack = '')")
+            or_parts.append(
+                "(tech_stack IS NULL)"
+                if self.is_postgres
+                else "(tech_stack IS NULL OR tech_stack = '')"
+            )
             conditions.append(f"({' OR '.join(or_parts)})")
 
         conditions.append("(enrichment_attempts < 3 OR enrichment_attempts IS NULL)")
@@ -316,6 +340,7 @@ class ForgeDB(_ForgeDBIOMixin):
             try:
                 if self.is_postgres:
                     import psycopg2.extras
+
                     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
                     cur.execute(query, params)
                     rows = cur.fetchall()
@@ -359,9 +384,15 @@ class ForgeDB(_ForgeDBIOMixin):
     def get_stats(self) -> Dict[str, Any]:
         """Get database statistics for the businesses table."""
         stats: Dict[str, Any] = {
-            "total_records": 0, "with_email": 0, "with_tech_stack": 0,
-            "with_npi": 0, "with_website": 0, "with_ai_summary": 0,
-            "with_health_score": 0, "with_industry": 0, "enriched_today": 0,
+            "total_records": 0,
+            "with_email": 0,
+            "with_tech_stack": 0,
+            "with_npi": 0,
+            "with_website": 0,
+            "with_ai_summary": 0,
+            "with_health_score": 0,
+            "with_industry": 0,
+            "enriched_today": 0,
             "last_enriched": None,
         }
         queries = self._build_stats_queries()
@@ -402,6 +433,7 @@ class ForgeDB(_ForgeDBIOMixin):
             try:
                 if self.is_postgres:
                     import psycopg2.extras
+
                     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
                     cur.execute(query, (business_id,))
                     row = cur.fetchone()
@@ -499,6 +531,7 @@ class ForgeDB(_ForgeDBIOMixin):
             try:
                 if self.is_postgres:
                     import psycopg2.extras
+
                     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
                     cur.execute(query, params)
                     rows = cur.fetchall()
@@ -536,7 +569,7 @@ class ForgeDB(_ForgeDBIOMixin):
           execute(), so the in_tx check prevents auto-commit from leaking
           into the transaction's atomicity.
         """
-        in_tx = getattr(self._in_transaction, 'active', False)
+        in_tx = getattr(self._in_transaction, "active", False)
 
         if self.is_postgres:
             # PG: pool gives a different connection, so auto-commit is safe
@@ -580,7 +613,7 @@ class ForgeDB(_ForgeDBIOMixin):
             query: SQL query using backend-appropriate placeholders.
             params_list: List of parameter tuples.
         """
-        in_tx = getattr(self._in_transaction, 'active', False)
+        in_tx = getattr(self._in_transaction, "active", False)
 
         if self.is_postgres:
             conn = self._backend._pool.getconn()

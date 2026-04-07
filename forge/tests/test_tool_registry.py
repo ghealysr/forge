@@ -8,6 +8,7 @@ from forge.core.tool_registry import SimpleTool, Tool, ToolDefinition, ToolRegis
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 class DummyTool(Tool):
     """Concrete Tool subclass for testing."""
 
@@ -37,6 +38,7 @@ def _upper_func(args):
 # ---------------------------------------------------------------------------
 # Tests: register / get_tool
 # ---------------------------------------------------------------------------
+
 
 class TestRegister:
     def test_register_adds_tool(self):
@@ -72,6 +74,7 @@ class TestRegister:
 # Tests: get_tool_definitions
 # ---------------------------------------------------------------------------
 
+
 class TestGetToolDefinitions:
     def test_returns_list_of_dicts(self):
         reg = ToolRegistry()
@@ -98,6 +101,7 @@ class TestGetToolDefinitions:
 # Tests: list_tools
 # ---------------------------------------------------------------------------
 
+
 class TestListTools:
     def test_returns_names(self):
         reg = ToolRegistry()
@@ -116,6 +120,7 @@ class TestListTools:
 # Tests: count
 # ---------------------------------------------------------------------------
 
+
 class TestCount:
     def test_count_zero(self):
         reg = ToolRegistry()
@@ -131,6 +136,7 @@ class TestCount:
 # ---------------------------------------------------------------------------
 # Tests: register_function
 # ---------------------------------------------------------------------------
+
 
 class TestRegisterFunction:
     def test_creates_simple_tool(self):
@@ -162,6 +168,7 @@ class TestRegisterFunction:
 # ---------------------------------------------------------------------------
 # Tests: SimpleTool
 # ---------------------------------------------------------------------------
+
 
 class TestSimpleTool:
     def test_execute_calls_function(self):
@@ -205,6 +212,7 @@ class TestSimpleTool:
 # ---------------------------------------------------------------------------
 # Tests: Tool base class (DummyTool)
 # ---------------------------------------------------------------------------
+
 
 class TestToolBase:
     def test_execute(self):

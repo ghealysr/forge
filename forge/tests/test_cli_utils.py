@@ -14,6 +14,7 @@ from forge.cli_helpers import ProgressBar
 # Tests: color helpers
 # ---------------------------------------------------------------------------
 
+
 class TestColorHelpers:
     def test_colors_disabled_with_no_color(self):
         # Reset cached state
@@ -86,6 +87,7 @@ class TestColorHelpers:
 # Tests: ProgressBar
 # ---------------------------------------------------------------------------
 
+
 class TestProgressBar:
     def test_construction(self):
         bar = ProgressBar(total=100, label="Test")
@@ -120,6 +122,7 @@ class TestProgressBar:
 # Tests: build_parser
 # ---------------------------------------------------------------------------
 
+
 class TestBuildParser:
     def test_parser_builds_without_error(self):
         parser = build_parser()
@@ -152,6 +155,7 @@ class TestBuildParser:
 # ---------------------------------------------------------------------------
 # Tests: setup_logging
 # ---------------------------------------------------------------------------
+
 
 class TestSetupLogging:
     def test_default_logging(self):

@@ -14,6 +14,7 @@ from forge.discovery.zip_centroids import get_zip_centroid
 # Tests: get_zip_centroid
 # ---------------------------------------------------------------------------
 
+
 class TestGetZipCentroid:
     def test_known_zip_tampa(self):
         result = get_zip_centroid("33602")
@@ -104,6 +105,7 @@ class TestGetZipCentroid:
 # Tests: Overture Maps category mapping
 # ---------------------------------------------------------------------------
 
+
 class TestCategoryMapping:
     def test_restaurant_maps_to_restaurant(self):
         assert _CATEGORY_TO_INDUSTRY["restaurant"] == "restaurant"
@@ -141,6 +143,7 @@ class TestCategoryMapping:
 # ---------------------------------------------------------------------------
 # Tests: Constants
 # ---------------------------------------------------------------------------
+
 
 class TestConstants:
     def test_miles_to_degrees_reasonable(self):

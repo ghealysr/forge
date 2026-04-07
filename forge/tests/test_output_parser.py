@@ -18,6 +18,7 @@ def parser():
 # extract_tool_calls: native Ollama format
 # ---------------------------------------------------------------------------
 
+
 class TestNativeToolCalls:
     def test_single_native_tool_call(self, parser):
         response = {
@@ -110,9 +111,12 @@ class TestNativeToolCalls:
 # extract_tool_calls: JSON in text
 # ---------------------------------------------------------------------------
 
+
 class TestJsonInText:
     def test_json_tool_call_in_text(self, parser):
-        text = 'I will use the tool: {"tool": "web_scrape", "arguments": {"url": "https://foo.com"}}'
+        text = (
+            'I will use the tool: {"tool": "web_scrape", "arguments": {"url": "https://foo.com"}}'
+        )
         calls = parser.extract_tool_calls(text)
         assert len(calls) == 1
         assert calls[0].name == "web_scrape"
@@ -147,6 +151,7 @@ class TestJsonInText:
 # extract_tool_calls: JSON in code blocks
 # ---------------------------------------------------------------------------
 
+
 class TestCodeBlockToolCalls:
     def test_json_code_block(self, parser):
         text = """Here is my tool call:
@@ -178,6 +183,7 @@ not valid json at all
 # extract_tool_calls: no tool calls
 # ---------------------------------------------------------------------------
 
+
 class TestNoToolCalls:
     def test_plain_text_returns_empty(self, parser):
         calls = parser.extract_tool_calls("Just a normal response about weather.")
@@ -200,6 +206,7 @@ class TestNoToolCalls:
 # ---------------------------------------------------------------------------
 # extract_text
 # ---------------------------------------------------------------------------
+
 
 class TestExtractText:
     def test_string_input(self, parser):
@@ -234,6 +241,7 @@ class TestExtractText:
 # strip_thinking_block
 # ---------------------------------------------------------------------------
 
+
 class TestStripThinkingBlock:
     def test_removes_think_block(self):
         text = "<think>I need to consider this carefully.</think>The answer is 42."
@@ -255,6 +263,7 @@ class TestStripThinkingBlock:
 # ---------------------------------------------------------------------------
 # extract_json_from_response
 # ---------------------------------------------------------------------------
+
 
 class TestExtractJsonFromResponse:
     def test_valid_json_extracted(self):
@@ -287,6 +296,7 @@ class TestExtractJsonFromResponse:
 # ---------------------------------------------------------------------------
 # _extract_json_objects edge cases
 # ---------------------------------------------------------------------------
+
 
 class TestExtractJsonObjects:
     def test_closing_brace_inside_string(self, parser):

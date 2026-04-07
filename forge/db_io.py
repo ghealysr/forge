@@ -72,7 +72,10 @@ class _ForgeDBIOMixin:
                     params.append(self._prepare_value_for_write(col, val))
                 if set_clauses:
                     set_clauses.append(f"updated_at = {self._backend.now_expr()}")
-                    conn.execute(f"UPDATE businesses SET {', '.join(set_clauses)} WHERE id = ?", params + [business_id])
+                    conn.execute(
+                        f"UPDATE businesses SET {', '.join(set_clauses)} WHERE id = ?",
+                        params + [business_id],
+                    )
                     conn.commit()
             else:
                 columns = ["id"]
@@ -84,7 +87,10 @@ class _ForgeDBIOMixin:
                     columns.append(col)
                     placeholders.append("?")
                     params.append(self._prepare_value_for_write(col, val))
-                conn.execute(f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)})", params)
+                conn.execute(
+                    f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)})",
+                    params,
+                )
                 conn.commit()
         return business_id
 
@@ -99,10 +105,14 @@ class _ForgeDBIOMixin:
             columns.append(col)
             placeholders.append("%s::jsonb" if col in JSON_COLUMNS else "%s")
             params.append(self._prepare_value_for_write(col, val))
-        conflict_sets = [f"{col} = COALESCE(businesses.{col}, EXCLUDED.{col})" for col in columns[1:]]
+        conflict_sets = [
+            f"{col} = COALESCE(businesses.{col}, EXCLUDED.{col})" for col in columns[1:]
+        ]
         conflict_sets.append("updated_at = NOW()")
-        query = (f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)}) "
-                 f"ON CONFLICT (id) DO UPDATE SET {', '.join(conflict_sets)} RETURNING id")
+        query = (
+            f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)}) "
+            f"ON CONFLICT (id) DO UPDATE SET {', '.join(conflict_sets)} RETURNING id"
+        )
         with self._backend.write_connection() as conn:
             cur = conn.cursor()
             cur.execute(query, params)
@@ -121,12 +131,18 @@ class _ForgeDBIOMixin:
         with self._backend.write_connection() as conn:
             try:
                 for record in records:
-                    safe_data = {k: v for k, v in record.items() if k in ENRICHABLE_FIELDS or k == "id"}
+                    safe_data = {
+                        k: v for k, v in record.items() if k in ENRICHABLE_FIELDS or k == "id"
+                    }
                     business_id = safe_data.pop("id", None) or str(uuid.uuid4())
                     ids.append(business_id)
                     if not safe_data:
                         continue
-                    upsert_fn = self._upsert_single_pg_in_txn if self.is_postgres else self._upsert_single_sqlite_in_txn
+                    upsert_fn = (
+                        self._upsert_single_pg_in_txn
+                        if self.is_postgres
+                        else self._upsert_single_sqlite_in_txn
+                    )
                     if upsert_fn(conn, business_id, safe_data):
                         inserted += 1
                     else:
@@ -136,10 +152,18 @@ class _ForgeDBIOMixin:
                 if self.is_postgres:
                     conn.rollback()
                 logger.error("upsert_batch failed: %s", e)
-                return {"status": "error", "inserted": inserted, "updated": updated_count, "ids": ids, "error": str(e)}
+                return {
+                    "status": "error",
+                    "inserted": inserted,
+                    "updated": updated_count,
+                    "ids": ids,
+                    "error": str(e),
+                }
         return {"status": "completed", "inserted": inserted, "updated": updated_count, "ids": ids}
 
-    def _upsert_single_sqlite_in_txn(self, conn: Any, business_id: str, data: Dict[str, Any]) -> bool:
+    def _upsert_single_sqlite_in_txn(
+        self, conn: Any, business_id: str, data: Dict[str, Any]
+    ) -> bool:
         """SQLite upsert within existing transaction. Returns True if inserted."""
         row = conn.execute("SELECT id FROM businesses WHERE id = ?", (business_id,)).fetchone()
         if row:
@@ -152,7 +176,10 @@ class _ForgeDBIOMixin:
                 params.append(self._prepare_value_for_write(col, val))
             if set_clauses:
                 set_clauses.append(f"updated_at = {self._backend.now_expr()}")
-                conn.execute(f"UPDATE businesses SET {', '.join(set_clauses)} WHERE id = ?", params + [business_id])
+                conn.execute(
+                    f"UPDATE businesses SET {', '.join(set_clauses)} WHERE id = ?",
+                    params + [business_id],
+                )
             return False
         columns = ["id"]
         placeholders = ["?"]
@@ -163,7 +190,10 @@ class _ForgeDBIOMixin:
             columns.append(col)
             placeholders.append("?")
             params.append(self._prepare_value_for_write(col, val))
-        conn.execute(f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)})", params)
+        conn.execute(
+            f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)})",
+            params,
+        )
         return True
 
     def _upsert_single_pg_in_txn(self, conn: Any, business_id: str, data: Dict[str, Any]) -> bool:
@@ -177,10 +207,14 @@ class _ForgeDBIOMixin:
             columns.append(col)
             placeholders.append("%s::jsonb" if col in JSON_COLUMNS else "%s")
             params.append(self._prepare_value_for_write(col, val))
-        conflict_sets = [f"{col} = COALESCE(businesses.{col}, EXCLUDED.{col})" for col in columns[1:]]
+        conflict_sets = [
+            f"{col} = COALESCE(businesses.{col}, EXCLUDED.{col})" for col in columns[1:]
+        ]
         conflict_sets.append("updated_at = NOW()")
-        query = (f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)}) "
-                 f"ON CONFLICT (id) DO UPDATE SET {', '.join(conflict_sets)} RETURNING (xmax = 0) AS was_insert")
+        query = (
+            f"INSERT INTO businesses ({', '.join(columns)}) VALUES ({', '.join(placeholders)}) "
+            f"ON CONFLICT (id) DO UPDATE SET {', '.join(conflict_sets)} RETURNING (xmax = 0) AS was_insert"
+        )
         cur = conn.cursor()
         cur.execute(query, params)
         result = cur.fetchone()
@@ -193,6 +227,7 @@ class _ForgeDBIOMixin:
     def _detect_columns(fieldnames: Sequence[str]) -> Dict[str, str]:
         """Map CSV headers to canonical column names."""
         from forge.db_schema import COLUMN_ALIASES
+
         column_mapping: Dict[str, str] = {}
         for header in fieldnames:
             canonical = COLUMN_ALIASES.get(header.lower().strip())
@@ -265,12 +300,23 @@ class _ForgeDBIOMixin:
         except Exception as e:  # Non-critical: return error dict so CLI can display message
             logger.error("CSV import failed: %s", e)
             return {"status": "error", "error": str(e)}
-        logger.info("CSV import complete: %d total, %d imported, %d skipped", total_rows, imported, skipped)
-        details = {"status": "completed", "total_rows": total_rows, "imported": imported,
-                    "skipped": skipped, "new": imported, "updated": 0, "column_mapping": column_mapping}
+        logger.info(
+            "CSV import complete: %d total, %d imported, %d skipped", total_rows, imported, skipped
+        )
+        details = {
+            "status": "completed",
+            "total_rows": total_rows,
+            "imported": imported,
+            "skipped": skipped,
+            "new": imported,
+            "updated": 0,
+            "column_mapping": column_mapping,
+        }
         return details if return_details else imported
 
-    def _write_rows_to_csv(self, filepath: str, rows: List[Any], fieldnames: List[str], as_dicts: bool) -> int:
+    def _write_rows_to_csv(
+        self, filepath: str, rows: List[Any], fieldnames: List[str], as_dicts: bool
+    ) -> int:
         """Write rows to a CSV file. Returns count written."""
         exported = 0
         with open(filepath, "w", newline="", encoding="utf-8") as f:
@@ -281,7 +327,9 @@ class _ForgeDBIOMixin:
                 exported += 1
         return exported
 
-    def export_csv(self, filepath: str, where: Optional[str] = None, params: Optional[List[Any]] = None) -> Dict[str, Any]:
+    def export_csv(
+        self, filepath: str, where: Optional[str] = None, params: Optional[List[Any]] = None
+    ) -> Dict[str, Any]:
         """Export business records to a CSV file."""
         where = self._resolve_where(where)
         query = "SELECT * FROM businesses"
@@ -293,6 +341,7 @@ class _ForgeDBIOMixin:
             try:
                 if self.is_postgres:
                     import psycopg2.extras
+
                     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
                     cur.execute(query, query_params)
                     rows = cur.fetchall()
@@ -311,7 +360,9 @@ class _ForgeDBIOMixin:
         logger.info("CSV export complete: %d rows -> %s", exported, filepath)
         return {"status": "completed", "row_count": exported}
 
-    def export_json(self, filepath: str, where: Optional[str] = None, params: Optional[List[Any]] = None) -> Dict[str, Any]:
+    def export_json(
+        self, filepath: str, where: Optional[str] = None, params: Optional[List[Any]] = None
+    ) -> Dict[str, Any]:
         """Export business records to a JSON file."""
         where = self._resolve_where(where)
         query = "SELECT * FROM businesses"

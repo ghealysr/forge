@@ -26,6 +26,7 @@ logger = logging.getLogger("forge.context_manager")
 @dataclass
 class Message:
     """A single message in the conversation."""
+
     role: str  # "system", "user", "assistant", "tool"
     content: str
     tool_call_id: Optional[str] = None
@@ -96,12 +97,14 @@ class ContextManager:
 
     def add_tool_result(self, tool_name: str, tool_call_id: str, result: str) -> None:
         """Add a tool execution result to the conversation."""
-        self._messages.append(Message(
-            role="tool",
-            content=result,
-            tool_call_id=tool_call_id,
-            tool_name=tool_name,
-        ))
+        self._messages.append(
+            Message(
+                role="tool",
+                content=result,
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+            )
+        )
 
     def get_messages(self) -> List[Dict[str, Any]]:
         """
@@ -171,7 +174,10 @@ class ContextManager:
 
         logger.info(
             "Compacted: %d messages → %d (summarized %d, preserved %d)",
-            old_count, len(self._messages), len(old_messages), len(recent_messages),
+            old_count,
+            len(self._messages),
+            len(old_messages),
+            len(recent_messages),
         )
 
     def _model_summary(self, messages: List[Message], model_adapter: Any) -> str:
@@ -188,8 +194,7 @@ class ContextManager:
             summary_prompt = (
                 "Summarize the following conversation history in 3-5 bullet points. "
                 "Focus on: what tasks were attempted, what succeeded, what failed, "
-                "and what the current state is. Be concise.\n\n"
-                + "\n".join(content_parts)
+                "and what the current state is. Be concise.\n\n" + "\n".join(content_parts)
             )
 
             response = model_adapter.generate(

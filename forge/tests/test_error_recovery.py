@@ -1,6 +1,5 @@
 """Tests for forge.safety.error_recovery — field validation and batch failure tracking."""
 
-
 from forge.safety.error_recovery import (
     FIELD_VALIDATORS,
     validate_field,
@@ -10,6 +9,7 @@ from forge.safety.error_recovery import (
 # ---------------------------------------------------------------------------
 # Tests: validate_field
 # ---------------------------------------------------------------------------
+
 
 class TestValidateField:
     # -- email --
@@ -145,6 +145,7 @@ class TestValidateField:
 # Tests: validate_updates
 # ---------------------------------------------------------------------------
 
+
 class TestValidateUpdates:
     def test_all_valid(self):
         updates = {
@@ -197,11 +198,20 @@ class TestValidateUpdates:
 # Tests: FIELD_VALIDATORS structure
 # ---------------------------------------------------------------------------
 
+
 class TestFieldValidators:
     def test_expected_fields_present(self):
-        expected = ["email", "industry", "ai_summary", "health_score",
-                    "tech_stack", "cms_detected", "ssl_valid", "site_speed_ms",
-                    "pain_points"]
+        expected = [
+            "email",
+            "industry",
+            "ai_summary",
+            "health_score",
+            "tech_stack",
+            "cms_detected",
+            "ssl_valid",
+            "site_speed_ms",
+            "pain_points",
+        ]
         for field in expected:
             assert field in FIELD_VALIDATORS
 

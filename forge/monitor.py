@@ -38,22 +38,30 @@ SERVICES = {
     f"{SERVICE_PREFIX}.forge-scraper-1": {
         "name": "Scraper 1",
         "log": "/tmp/forge_scraper_1.log",
-        "plist": os.path.expanduser(f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-1.plist"),
+        "plist": os.path.expanduser(
+            f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-1.plist"
+        ),
     },
     f"{SERVICE_PREFIX}.forge-scraper-2": {
         "name": "Scraper 2",
         "log": "/tmp/forge_scraper_2.log",
-        "plist": os.path.expanduser(f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-2.plist"),
+        "plist": os.path.expanduser(
+            f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-2.plist"
+        ),
     },
     f"{SERVICE_PREFIX}.forge-scraper-3": {
         "name": "Scraper 3",
         "log": "/tmp/forge_scraper_3.log",
-        "plist": os.path.expanduser(f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-3.plist"),
+        "plist": os.path.expanduser(
+            f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-3.plist"
+        ),
     },
     f"{SERVICE_PREFIX}.forge-scraper-4": {
         "name": "Scraper 4",
         "log": "/tmp/forge_scraper_4.log",
-        "plist": os.path.expanduser(f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-4.plist"),
+        "plist": os.path.expanduser(
+            f"~/Library/LaunchAgents/{SERVICE_PREFIX}.forge-scraper-4.plist"
+        ),
     },
     f"{SERVICE_PREFIX}.fcc-import": {
         "name": "FCC Import",
@@ -82,7 +90,9 @@ def check_service_running(label: str) -> dict:
         try:
             result = subprocess.run(
                 ["launchctl", "list"],
-                capture_output=True, text=True, timeout=10,
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             for line in result.stdout.strip().split("\n"):
                 parts = line.split("\t")
@@ -102,11 +112,13 @@ def check_service_running(label: str) -> dict:
         try:
             result = subprocess.run(
                 ["pgrep", "-f", label],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             return {
                 "running": result.returncode == 0,
-                "pid": result.stdout.strip().split('\n')[0] if result.returncode == 0 else None,
+                "pid": result.stdout.strip().split("\n")[0] if result.returncode == 0 else None,
             }
         except Exception:  # Non-critical: pgrep unavailable on this platform
             return {
@@ -121,11 +133,9 @@ def restart_service(label: str, plist: str) -> bool:
     if platform.system() == "Darwin" and shutil.which("launchctl"):
         # macOS launchd
         try:
-            subprocess.run(["launchctl", "unload", plist],
-                           capture_output=True, timeout=10)
+            subprocess.run(["launchctl", "unload", plist], capture_output=True, timeout=10)
             time.sleep(1)
-            subprocess.run(["launchctl", "load", plist],
-                           capture_output=True, timeout=10)
+            subprocess.run(["launchctl", "load", plist], capture_output=True, timeout=10)
             time.sleep(3)
             status = check_service_running(label)
             if status["running"]:
@@ -141,7 +151,8 @@ def restart_service(label: str, plist: str) -> bool:
         logger.warning(
             "Cannot auto-restart %s on this platform (%s). "
             "Please restart manually or configure a systemd unit.",
-            label, platform.system(),
+            label,
+            platform.system(),
         )
         return False
 
@@ -163,7 +174,7 @@ def get_db_stats() -> dict:
 def load_previous_status() -> dict:
     """Load status from previous run."""
     try:
-        with open(STATUS_FILE, 'r') as f:
+        with open(STATUS_FILE, "r") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
@@ -171,7 +182,7 @@ def load_previous_status() -> dict:
 
 def save_status(status: dict) -> None:
     """Save current status for next run comparison."""
-    with open(STATUS_FILE, 'w') as f:
+    with open(STATUS_FILE, "w") as f:
         json.dump(status, f, indent=2, default=str)
 
 
@@ -180,7 +191,9 @@ def tail_log(logfile: str, lines: int = 5) -> str:
     try:
         result = subprocess.run(
             ["tail", f"-{lines}", logfile],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         return result.stdout.strip()
     except Exception:  # Non-critical: log file may not exist or tail may fail
@@ -195,7 +208,9 @@ def _check_all_services(current: dict) -> None:
         if status["running"]:
             logger.info("[OK] %s — PID %s", svc_info["name"], status["pid"])
         else:
-            logger.warning("[DOWN] %s — exit code %s", svc_info["name"], status.get("exit_code", "unknown"))
+            logger.warning(
+                "[DOWN] %s — exit code %s", svc_info["name"], status.get("exit_code", "unknown")
+            )
             log_tail = tail_log(svc_info["log"])
             if log_tail:
                 logger.info("  Last log: %s", log_tail[-200:])
@@ -213,7 +228,14 @@ def _log_db_stats(db_stats: dict, previous: dict) -> None:
         return
     logger.info("")
     logger.info("DB ENRICHMENT STATE:")
-    for key in ("total_records", "with_email", "with_tech_stack", "with_npi", "enriched_today", "last_enriched"):
+    for key in (
+        "total_records",
+        "with_email",
+        "with_tech_stack",
+        "with_npi",
+        "enriched_today",
+        "last_enriched",
+    ):
         logger.info("  %s: %s", key.replace("_", " ").title(), db_stats.get(key, "?"))
     prev_email = int(previous.get("db_stats", {}).get("with_email", "0"))
     curr_email = int(db_stats.get("with_email", "0"))
@@ -230,7 +252,12 @@ def run_monitor():
     logger.info("=" * 60)
 
     previous = load_previous_status()
-    current = {"timestamp": datetime.now().isoformat(), "services": {}, "db_stats": {}, "actions_taken": []}
+    current = {
+        "timestamp": datetime.now().isoformat(),
+        "services": {},
+        "db_stats": {},
+        "actions_taken": [],
+    }
 
     _check_all_services(current)
     db_stats = get_db_stats()

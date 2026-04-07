@@ -24,9 +24,7 @@ from forge.discovery.zip_centroids import get_zip_centroid
 logger = logging.getLogger(__name__)
 
 # Overture Maps S3 release path (update when new releases land)
-OVERTURE_PLACES_PATH = (
-    "s3://overturemaps-us-west-2/release/2025-03-02-0/theme=places/type=place/*"
-)
+OVERTURE_PLACES_PATH = "s3://overturemaps-us-west-2/release/2025-03-02-0/theme=places/type=place/*"
 
 # Approximate conversion: 1 mile ~ 0.0145 degrees at mid-latitudes
 MILES_TO_DEGREES = 0.0145
@@ -161,8 +159,7 @@ class OvertureDiscovery:
             self._conn.execute("SET s3_secret_access_key='';")
         except Exception as exc:  # Catch-and-reraise: wrap in domain-specific error
             raise OvertureDiscoveryError(
-                f"Failed to initialize DuckDB extensions: {exc}. "
-                "Check your internet connection."
+                f"Failed to initialize DuckDB extensions: {exc}. Check your internet connection."
             )
         logger.info("DuckDB extensions ready.")
 
@@ -217,15 +214,26 @@ class OvertureDiscovery:
             logger.info("Filtering to industry '%s' -> categories: %s", industry, cats)
             return f"AND categories.primary IN ({cat_list})"
 
-        safe_industry = re.sub(r'[^a-zA-Z0-9_\-\s]', '', industry.lower().strip())
+        safe_industry = re.sub(r"[^a-zA-Z0-9_\-\s]", "", industry.lower().strip())
         if not safe_industry:
             logger.warning("Industry '%s' rejected — invalid characters.", industry)
             return ""
-        logger.info("Industry '%s' has no mapping; filtering raw category (sanitized: '%s').", industry, safe_industry)
+        logger.info(
+            "Industry '%s' has no mapping; filtering raw category (sanitized: '%s').",
+            industry,
+            safe_industry,
+        )
         return f"AND LOWER(categories.primary) = '{safe_industry}'"
 
     @staticmethod
-    def _build_overture_sql(min_lat: float, max_lat: float, min_lon: float, max_lon: float, category_filter: str, limit: int) -> str:
+    def _build_overture_sql(
+        min_lat: float,
+        max_lat: float,
+        min_lon: float,
+        max_lon: float,
+        category_filter: str,
+        limit: int,
+    ) -> str:
         """Build the DuckDB SQL query for Overture Maps."""
         return f"""
         SELECT
@@ -265,9 +273,12 @@ class OvertureDiscovery:
             err_str = str(exc).lower()
             if elapsed >= QUERY_TIMEOUT_SECONDS or "timeout" in err_str:
                 raise OvertureDiscoveryError(
-                    f"Query timed out after {elapsed:.0f}s. Try a smaller radius or more specific industry.")
+                    f"Query timed out after {elapsed:.0f}s. Try a smaller radius or more specific industry."
+                )
             if "unable to connect" in err_str or "http" in err_str:
-                raise OvertureDiscoveryError("Could not reach Overture Maps. Check internet connection.")
+                raise OvertureDiscoveryError(
+                    "Could not reach Overture Maps. Check internet connection."
+                )
             raise OvertureDiscoveryError(f"DuckDB query failed: {exc}")
 
         elapsed = time.time() - start
@@ -307,7 +318,9 @@ class OvertureDiscovery:
         if industry and not category_filter:
             return []
 
-        sql = self._build_overture_sql(lat - delta, lat + delta, lon - delta, lon + delta, category_filter, limit)
+        sql = self._build_overture_sql(
+            lat - delta, lat + delta, lon - delta, lon + delta, category_filter, limit
+        )
 
         label = f"({lat:.4f}, {lon:.4f}) r={radius_miles}mi"
         if industry:

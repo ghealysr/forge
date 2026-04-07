@@ -1,7 +1,5 @@
 """Tests for forge.monitor — monitor utility functions."""
 
-
-
 from forge.monitor import (
     SERVICE_PREFIX,
     SERVICES,
@@ -14,6 +12,7 @@ from forge.monitor import (
 # Tests: save_status / load_previous_status
 # ---------------------------------------------------------------------------
 
+
 class TestStatusPersistence:
     def test_save_and_load_roundtrip(self, tmp_path):
         status_file = str(tmp_path / "test_status.json")
@@ -21,6 +20,7 @@ class TestStatusPersistence:
 
         # Patch STATUS_FILE to use temp path
         import forge.monitor as mon
+
         original = mon.STATUS_FILE
         mon.STATUS_FILE = status_file
         try:
@@ -33,6 +33,7 @@ class TestStatusPersistence:
 
     def test_load_missing_file_returns_empty(self, tmp_path):
         import forge.monitor as mon
+
         original = mon.STATUS_FILE
         mon.STATUS_FILE = str(tmp_path / "nonexistent.json")
         try:
@@ -46,6 +47,7 @@ class TestStatusPersistence:
         status_file.write_text("{invalid json!!!")
 
         import forge.monitor as mon
+
         original = mon.STATUS_FILE
         mon.STATUS_FILE = str(status_file)
         try:
@@ -58,6 +60,7 @@ class TestStatusPersistence:
 # ---------------------------------------------------------------------------
 # Tests: tail_log
 # ---------------------------------------------------------------------------
+
 
 class TestTailLog:
     def test_tail_existing_file(self, tmp_path):
@@ -79,6 +82,7 @@ class TestTailLog:
 # ---------------------------------------------------------------------------
 # Tests: SERVICES config
 # ---------------------------------------------------------------------------
+
 
 class TestServicesConfig:
     def test_services_not_empty(self):

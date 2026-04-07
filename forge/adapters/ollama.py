@@ -45,11 +45,18 @@ class OllamaAdapter:
         self._default_timeout = default_timeout
         self._client = httpx.Client(timeout=default_timeout)
 
-    def _build_chat_payload(self, messages: List[Dict[str, Any]], model: str,
-                            tools: Optional[List[Dict[str, Any]]], temperature: float) -> Dict[str, Any]:
+    def _build_chat_payload(
+        self,
+        messages: List[Dict[str, Any]],
+        model: str,
+        tools: Optional[List[Dict[str, Any]]],
+        temperature: float,
+    ) -> Dict[str, Any]:
         """Build the Ollama chat API payload."""
         payload: Dict[str, Any] = {
-            "model": model, "messages": messages, "stream": False,
+            "model": model,
+            "messages": messages,
+            "stream": False,
             "options": {"temperature": temperature, "num_predict": 2048},
         }
         if tools:
@@ -61,7 +68,9 @@ class OllamaAdapter:
         eval_count = data.get("eval_count", 0)
         eval_duration = data.get("eval_duration", 1)
         tokens_per_sec = eval_count / (eval_duration / 1e9) if eval_duration > 0 else 0
-        logger.debug("Ollama response: model=%s, tokens=%d, tok/s=%.1f", model, eval_count, tokens_per_sec)
+        logger.debug(
+            "Ollama response: model=%s, tokens=%d, tok/s=%.1f", model, eval_count, tokens_per_sec
+        )
 
     def generate(
         self,
@@ -82,7 +91,9 @@ class OllamaAdapter:
         payload = self._build_chat_payload(messages, model, tools, temperature)
 
         try:
-            response = self._client.post(f"{self._base_url}/api/chat", json=payload, timeout=timeout)
+            response = self._client.post(
+                f"{self._base_url}/api/chat", json=payload, timeout=timeout
+            )
             response.raise_for_status()
             data = response.json()
             self._log_inference_stats(data, model)

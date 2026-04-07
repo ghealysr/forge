@@ -43,6 +43,7 @@ logger = logging.getLogger("forge.agent_loop")
 @dataclass
 class AgentConfig:
     """Configuration for an agent run."""
+
     model: str = "gemma4"
     system_prompt: str = ""
     max_turns: int = 200
@@ -51,12 +52,15 @@ class AgentConfig:
     context_window: int = 8192  # tokens — conservative for 8B model
     compact_threshold: float = 0.75  # compact when context is 75% full
     timeout_per_turn: float = 120.0  # seconds
-    stop_sequences: List[str] = field(default_factory=lambda: ["TASK_COMPLETE", "TASK_FAILED", "NEED_HUMAN"])
+    stop_sequences: List[str] = field(
+        default_factory=lambda: ["TASK_COMPLETE", "TASK_FAILED", "NEED_HUMAN"]
+    )
 
 
 @dataclass
 class AgentResult:
     """Result of an agent run."""
+
     status: str  # "completed", "failed", "max_turns", "stopped"
     turns_used: int
     total_time: float
@@ -126,7 +130,9 @@ class AgentLoop:
         tool_defs = self._tools.get_tool_definitions()
         logger.info(
             "Agent starting — model=%s, tools=%d, max_turns=%d",
-            self._config.model, len(tool_defs), self._config.max_turns,
+            self._config.model,
+            len(tool_defs),
+            self._config.max_turns,
         )
 
         final_output = self._run_turns(tool_defs)
@@ -135,8 +141,11 @@ class AgentLoop:
         result = self._build_result(final_output, elapsed)
         logger.info(
             "Agent finished — status=%s, turns=%d, tool_calls=%d, time=%.1fs, errors=%d",
-            result.status, result.turns_used, result.tool_calls_made,
-            result.total_time, len(result.errors),
+            result.status,
+            result.turns_used,
+            result.tool_calls_made,
+            result.total_time,
+            len(result.errors),
         )
         return result
 

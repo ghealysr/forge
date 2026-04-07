@@ -29,7 +29,9 @@ def _validate_csv_input(file_path: str) -> tuple:
     """Validate the input CSV file exists and has data rows."""
     input_path = Path(file_path)
     if not input_path.exists():
-        die(f"File not found: {file_path}", hint=f"Check the path. Current directory: {os.getcwd()}")
+        die(
+            f"File not found: {file_path}", hint=f"Check the path. Current directory: {os.getcwd()}"
+        )
     if not input_path.suffix.lower() == ".csv":
         warn(f"File does not have .csv extension: {file_path}")
     if input_path.stat().st_size == 0:
@@ -72,7 +74,9 @@ def _detect_enrichment_mode(args: argparse.Namespace, config: Any) -> tuple:
     return adapter, mode
 
 
-def _run_enrichment_pipeline(db: Any, adapter: Any, args: argparse.Namespace, count: int, mode: str, default_workers: int) -> Any:
+def _run_enrichment_pipeline(
+    db: Any, adapter: Any, args: argparse.Namespace, count: int, mode: str, default_workers: int
+) -> Any:
     """Run the enrichment pipeline with signal handling."""
     _stop_requested = threading.Event()
 
@@ -85,11 +89,21 @@ def _run_enrichment_pipeline(db: Any, adapter: Any, args: argparse.Namespace, co
     signal.signal(signal.SIGTERM, handle_signal)
     try:
         from forge.enrichment.pipeline import EnrichmentPipeline
+
         workers = args.workers or default_workers
-        pipeline = EnrichmentPipeline(db_pool=db.get_pool(), ollama=adapter,
-                                      web_scraper_workers=workers, batch_size=args.batch_size or 5)
+        pipeline = EnrichmentPipeline(
+            db_pool=db.get_pool(),
+            ollama=adapter,
+            web_scraper_workers=workers,
+            batch_size=args.batch_size or 5,
+        )
         info(f"Enriching {count:,} records with {workers} workers...")
-        return pipeline.run(mode=mode, state_filter=getattr(args, "state", None), max_records=args.max, resume=args.resume)
+        return pipeline.run(
+            mode=mode,
+            state_filter=getattr(args, "state", None),
+            max_records=args.max,
+            resume=args.resume,
+        )
     except ImportError as e:
         die(f"Missing dependency: {e}", hint="Run: pip install forge-enrichment")
     except KeyboardInterrupt:
@@ -142,6 +156,7 @@ def run_csv_enrich(args: argparse.Namespace, logger: logging.Logger) -> None:
     """CSV zero-config mode -- imports CSV, enriches, exports results."""
     from forge.config import ForgeConfig
     from forge.db import ForgeDB
+
     input_path, col_count = _validate_csv_input(args.file)
     info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} -- CSV Enrichment Mode")
     info(f"  Input:   {input_path.name} ({col_count} columns)")
@@ -179,12 +194,15 @@ def run_database_enrich(args: argparse.Namespace, logger: logging.Logger) -> Non
     """Database mode -- run enrichment against a configured persistent database."""
     from forge.config import ForgeConfig
     from forge.db import ForgeDB
+
     config = ForgeConfig.load()
     db_config = config.to_db_config()
     if not db_config:
-        die("No database configured.",
+        die(
+            "No database configured.",
             hint="Run 'forge enrich --file data.csv' for zero-config mode,\n"
-                 "       or 'forge import --file data.csv' to load into a persistent database.")
+            "       or 'forge import --file data.csv' to load into a persistent database.",
+        )
     try:
         db = ForgeDB.from_config(db_config)
     except Exception as e:  # CLI boundary: convert to user-friendly error and exit
@@ -195,7 +213,10 @@ def run_database_enrich(args: argparse.Namespace, logger: logging.Logger) -> Non
         die(f"Could not read database: {e}")
     total = db_stats.get("total_records", 0)
     if total == 0:
-        die("Database is empty.", hint="Run 'forge import --file businesses.csv' to load data first.")
+        die(
+            "Database is empty.",
+            hint="Run 'forge import --file businesses.csv' to load data first.",
+        )
     info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} -- Database Enrichment Mode")
     info(f"  Database: {db_config.get('db_path', db_config.get('db_host', 'configured'))}")
     info(f"  Records:  {total:,}")

@@ -47,6 +47,7 @@ CHECKPOINT_FILE = "/tmp/sam_gov_resume_checkpoint.json"
 # Rate limit: 1000 requests / hour = 1 request per 3.6 seconds
 RATE_LIMIT_INTERVAL = 3.6
 
+
 def _get_forgedb(db_path=None):
     """Create a ForgeDB instance from db_path (SQLite) or env vars (PostgreSQL)."""
     from forge.db import ForgeDB
@@ -78,12 +79,30 @@ def _get_forgedb(db_path=None):
 # Normalization (same logic as fcc_uls.py)
 # ---------------------------------------------------------------------------
 
+
 def normalize_name(name: str) -> str:
     """Normalize a business name for matching."""
     name = name.upper().strip()
-    for suffix in [" LLC", " INC", " INC.", " CORP", " CORP.", " CO.", " CO",
-                   " LTD", " LTD.", " LP", " LLP", " PC", " PLLC", " PA",
-                   " DBA", " THE", ",", "."]:
+    for suffix in [
+        " LLC",
+        " INC",
+        " INC.",
+        " CORP",
+        " CORP.",
+        " CO.",
+        " CO",
+        " LTD",
+        " LTD.",
+        " LP",
+        " LLP",
+        " PC",
+        " PLLC",
+        " PA",
+        " DBA",
+        " THE",
+        ",",
+        ".",
+    ]:
         name = name.replace(suffix, "")
     return name.strip()
 
@@ -92,6 +111,7 @@ def normalize_name(name: str) -> str:
 # SAM.gov API interaction
 # ---------------------------------------------------------------------------
 
+
 def _build_params(
     page: int,
     page_size: int = 100,
@@ -99,7 +119,7 @@ def _build_params(
 ) -> Dict[str, str]:
     """Build query parameters for the SAM.gov entity search."""
     params: Dict[str, str] = {
-        "registrationStatus": "A",       # Active registrations only
+        "registrationStatus": "A",  # Active registrations only
         "purposeOfRegistrationCode": "Z2",  # Federal assistance + contracts
         "includeSections": "entityRegistration,coreData,pointsOfContact",
         "page": str(page),
@@ -110,22 +130,29 @@ def _build_params(
     return params
 
 
-def _try_fetch_once(client: httpx.Client, api_key: str, page: int, params: Dict[str, str]) -> Optional[Tuple[List[Dict], int]]:
+def _try_fetch_once(
+    client: httpx.Client, api_key: str, page: int, params: Dict[str, str]
+) -> Optional[Tuple[List[Dict], int]]:
     """Attempt a single SAM.gov API fetch. Returns (entities, total) or None for retryable errors."""
     headers = {"X-Api-Key": api_key}
     resp = client.get(SAM_API_BASE, params=params, headers=headers, timeout=60.0)
     if resp.status_code == 429:
         return None  # retryable
     if resp.status_code == 403:
-        raise RuntimeError("SAM.gov returned 403 Forbidden. Check your API key. Register at https://api.data.gov to get a free key.")
+        raise RuntimeError(
+            "SAM.gov returned 403 Forbidden. Check your API key. Register at https://api.data.gov to get a free key."
+        )
     resp.raise_for_status()
     data = resp.json()
     return data.get("entityData", []), data.get("totalRecords", 0)
 
 
 def _fetch_page(
-    client: httpx.Client, api_key: str, page: int,
-    page_size: int = 100, state_filter: Optional[str] = None,
+    client: httpx.Client,
+    api_key: str,
+    page: int,
+    page_size: int = 100,
+    state_filter: Optional[str] = None,
 ) -> Tuple[List[Dict], int]:
     """Fetch a single page of entities from SAM.gov with retries."""
     params = _build_params(page, page_size, state_filter)
@@ -140,12 +167,25 @@ def _fetch_page(
             time.sleep(wait)
         except httpx.TimeoutException:
             wait = 10 * (attempt + 1)
-            logger.warning("Timeout on page %d, attempt %d/%d. Retrying in %ds.", page, attempt + 1, max_retries, wait)
+            logger.warning(
+                "Timeout on page %d, attempt %d/%d. Retrying in %ds.",
+                page,
+                attempt + 1,
+                max_retries,
+                wait,
+            )
             time.sleep(wait)
         except httpx.HTTPStatusError as e:
             if attempt < max_retries - 1:
                 wait = 15 * (attempt + 1)
-                logger.warning("HTTP %d on page %d, attempt %d/%d. Retrying in %ds.", e.response.status_code, page, attempt + 1, max_retries, wait)
+                logger.warning(
+                    "HTTP %d on page %d, attempt %d/%d. Retrying in %ds.",
+                    e.response.status_code,
+                    page,
+                    attempt + 1,
+                    max_retries,
+                    wait,
+                )
                 time.sleep(wait)
             else:
                 raise
@@ -156,11 +196,16 @@ def _fetch_page(
 # Entity parsing
 # ---------------------------------------------------------------------------
 
+
 def _extract_poc_fields(pocs: Dict) -> tuple:
     """Extract POC email, name, and phone from SAM.gov points of contact."""
     poc_email = poc_name = poc_phone = None
-    for poc_key in ["governmentBusinessPOC", "electronicBusinessPOC",
-                    "governmentBusinessAlternatePOC", "electronicBusinessAlternatePOC"]:
+    for poc_key in [
+        "governmentBusinessPOC",
+        "electronicBusinessPOC",
+        "governmentBusinessAlternatePOC",
+        "electronicBusinessAlternatePOC",
+    ]:
         poc = pocs.get(poc_key, {})
         if not poc:
             continue
@@ -213,10 +258,14 @@ def _extract_entity(entity: Dict) -> Optional[Dict[str, Any]]:
         return None
 
     return {
-        "org_name": org_name, "name_normalized": normalize_name(org_name),
-        "state": state, "city": (phys_addr.get("city") or "").strip().upper(),
+        "org_name": org_name,
+        "name_normalized": normalize_name(org_name),
+        "state": state,
+        "city": (phys_addr.get("city") or "").strip().upper(),
         "zip_code": (phys_addr.get("zipCode") or "").strip()[:5],
-        "poc_email": poc_email, "poc_name": poc_name, "poc_phone": poc_phone,
+        "poc_email": poc_email,
+        "poc_name": poc_name,
+        "poc_phone": poc_phone,
         "naics_codes": _extract_naics(core),
     }
 
@@ -224,6 +273,7 @@ def _extract_entity(entity: Dict) -> Optional[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Database operations
 # ---------------------------------------------------------------------------
+
 
 def _build_name_state_index(db, state_filter: Optional[str] = None) -> Dict[str, Dict]:
     """
@@ -311,15 +361,19 @@ def _flush_updates(db, batch: List[Tuple], stats: Dict[str, int]) -> None:
 # Checkpoint (resume support)
 # ---------------------------------------------------------------------------
 
+
 def _save_checkpoint(page: int, api_calls: int, stats: Dict[str, int]) -> None:
     """Save resume checkpoint to disk."""
     with open(CHECKPOINT_FILE, "w") as f:
-        json.dump({
-            "page": page,
-            "api_calls": api_calls,
-            "stats": stats,
-            "timestamp": time.time(),
-        }, f)
+        json.dump(
+            {
+                "page": page,
+                "api_calls": api_calls,
+                "stats": stats,
+                "timestamp": time.time(),
+            },
+            f,
+        )
 
 
 def _load_checkpoint() -> Optional[Dict]:
@@ -348,6 +402,7 @@ def _clear_checkpoint() -> None:
 # Main import logic
 # ---------------------------------------------------------------------------
 
+
 def _process_entities(
     entities: List[Dict],
     name_state_index: Dict[str, Dict],
@@ -368,12 +423,14 @@ def _process_entities(
             continue
 
         stats["matches_found"] += 1
-        update_batch.append((
-            parsed["poc_email"],
-            parsed["poc_name"],
-            parsed["poc_email"],
-            biz["id"],
-        ))
+        update_batch.append(
+            (
+                parsed["poc_email"],
+                parsed["poc_name"],
+                parsed["poc_email"],
+                biz["id"],
+            )
+        )
 
         # Remove from index so we don't double-write
         del name_state_index[key]
@@ -405,8 +462,13 @@ def _should_stop_paging(
 def _init_import_stats(resume: bool) -> Tuple[Dict[str, int], int]:
     """Initialize import stats and determine start page from checkpoint."""
     stats: Dict[str, int] = {
-        "api_calls": 0, "entities_fetched": 0, "entities_with_email": 0,
-        "matches_found": 0, "rows_updated": 0, "already_had_data": 0, "db_errors": 0,
+        "api_calls": 0,
+        "entities_fetched": 0,
+        "entities_with_email": 0,
+        "matches_found": 0,
+        "rows_updated": 0,
+        "already_had_data": 0,
+        "db_errors": 0,
     }
     start_page = 0
     if resume:
@@ -414,16 +476,27 @@ def _init_import_stats(resume: bool) -> Tuple[Dict[str, int], int]:
         if checkpoint:
             start_page = checkpoint["page"] + 1
             stats.update(checkpoint.get("stats", {}))
-            logger.info("Resuming from checkpoint: page=%d, api_calls=%d, rows_updated=%d",
-                        start_page, stats["api_calls"], stats["rows_updated"])
+            logger.info(
+                "Resuming from checkpoint: page=%d, api_calls=%d, rows_updated=%d",
+                start_page,
+                stats["api_calls"],
+                stats["rows_updated"],
+            )
     return stats, start_page
 
 
 def _paginate_sam_gov(
-    client: Any, api_key: str, state_filter: Optional[str],
-    limit: Optional[int], page_size: int, flush_every: int,
-    start_page: int, db: Any, name_state_index: Dict[str, Dict],
-    stats: Dict[str, int], update_batch: List[Tuple],
+    client: Any,
+    api_key: str,
+    state_filter: Optional[str],
+    limit: Optional[int],
+    page_size: int,
+    flush_every: int,
+    start_page: int,
+    db: Any,
+    name_state_index: Dict[str, Dict],
+    stats: Dict[str, int],
+    update_batch: List[Tuple],
 ) -> None:
     """Paginate through SAM.gov API and process entities."""
     last_request_time = 0.0
@@ -450,8 +523,13 @@ def _paginate_sam_gov(
         if total_records is None:
             total_records = total
             tp = (total_records + page_size - 1) // page_size if total_records > 0 else 0
-            logger.info("SAM.gov query: %d total records, ~%d pages (size=%d)%s",
-                        total_records, tp, page_size, f", state={state_filter}" if state_filter else "")
+            logger.info(
+                "SAM.gov query: %d total records, ~%d pages (size=%d)%s",
+                total_records,
+                tp,
+                page_size,
+                f", state={state_filter}" if state_filter else "",
+            )
 
         if not entities:
             break
@@ -483,8 +561,10 @@ def import_sam_gov(
     db = _get_forgedb(db_path)
     name_state_index = _build_name_state_index(db, state_filter)
     if not name_state_index:
-        logger.warning("No businesses without email found%s. Nothing to do.",
-                       f" in {state_filter}" if state_filter else "")
+        logger.warning(
+            "No businesses without email found%s. Nothing to do.",
+            f" in {state_filter}" if state_filter else "",
+        )
         db.close()
         return stats
 
@@ -492,8 +572,19 @@ def import_sam_gov(
     client = httpx.Client(follow_redirects=True, headers={"Accept": "application/json"})
 
     try:
-        _paginate_sam_gov(client, api_key, state_filter, limit, page_size,
-                          flush_every, start_page, db, name_state_index, stats, update_batch)
+        _paginate_sam_gov(
+            client,
+            api_key,
+            state_filter,
+            limit,
+            page_size,
+            flush_every,
+            start_page,
+            db,
+            name_state_index,
+            stats,
+            update_batch,
+        )
     except KeyboardInterrupt:
         logger.info("Interrupted. Saving checkpoint.")
         _save_checkpoint(start_page, stats["api_calls"], stats)
@@ -519,25 +610,43 @@ def import_sam_gov(
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def _build_sam_parser() -> argparse.ArgumentParser:
     """Build the argparse parser for SAM.gov import CLI."""
-    parser = argparse.ArgumentParser(description="Import SAM.gov entity contact data into FORGE businesses table")
-    parser.add_argument("--api-key", default=os.environ.get("SAM_GOV_API_KEY"),
-                        help="SAM.gov API key (or set SAM_GOV_API_KEY env var)")
+    parser = argparse.ArgumentParser(
+        description="Import SAM.gov entity contact data into FORGE businesses table"
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.environ.get("SAM_GOV_API_KEY"),
+        help="SAM.gov API key (or set SAM_GOV_API_KEY env var)",
+    )
     parser.add_argument("--state", default=None, help="Filter to a single state (two-letter code)")
-    parser.add_argument("--limit", type=int, default=None, help="Maximum number of API pages to fetch")
+    parser.add_argument(
+        "--limit", type=int, default=None, help="Maximum number of API pages to fetch"
+    )
     parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     parser.add_argument("--db-path", type=str, default=None, help="SQLite database path")
     return parser
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
     parser = _build_sam_parser()
     args = parser.parse_args()
     if not args.api_key:
         parser.error("API key required. Pass --api-key or set SAM_GOV_API_KEY env var.")
-    stats = import_sam_gov(api_key=args.api_key, state_filter=args.state, limit=args.limit, resume=args.resume, db_path=args.db_path)
+    stats = import_sam_gov(
+        api_key=args.api_key,
+        state_filter=args.state,
+        limit=args.limit,
+        resume=args.resume,
+        db_path=args.db_path,
+    )
     print(f"\n{'=' * 50}\nSAM.GOV IMPORT RESULTS\n{'=' * 50}")
     for k, v in stats.items():
         print(f"  {k}: {v:,}")

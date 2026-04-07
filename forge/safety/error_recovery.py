@@ -34,10 +34,26 @@ FIELD_VALIDATORS = {
         "type": str,
         "max_length": 100,
         "whitelist": [
-            "restaurant", "salon", "real-estate", "dentist", "gym",
-            "lawyer", "landscaping", "barber", "cleaning-service", "chiropractor",
-            "veterinarian", "auto-repair", "tattoo-shop", "accountant", "plumber",
-            "photographer", "dog-groomer", "electrician", "food-truck", "personal-trainer",
+            "restaurant",
+            "salon",
+            "real-estate",
+            "dentist",
+            "gym",
+            "lawyer",
+            "landscaping",
+            "barber",
+            "cleaning-service",
+            "chiropractor",
+            "veterinarian",
+            "auto-repair",
+            "tattoo-shop",
+            "accountant",
+            "plumber",
+            "photographer",
+            "dog-groomer",
+            "electrician",
+            "food-truck",
+            "personal-trainer",
         ],
     },
     "ai_summary": {
@@ -94,7 +110,10 @@ def _check_type(field_name: str, value: Any, rules: Dict) -> tuple[bool, str]:
         elif expected_type is bool and isinstance(value, int):
             pass  # int is ok for bool
         else:
-            return False, f"{field_name}: expected {expected_type.__name__}, got {type(value).__name__}"
+            return (
+                False,
+                f"{field_name}: expected {expected_type.__name__}, got {type(value).__name__}",
+            )
     return True, ""
 
 
@@ -181,9 +200,7 @@ class EnrichmentLogger:
         try:
             import psycopg2  # noqa: F401
         except ImportError:
-            raise ImportError(
-                "EnrichmentLogger requires PostgreSQL (pip install psycopg2-binary)"
-            )
+            raise ImportError("EnrichmentLogger requires PostgreSQL (pip install psycopg2-binary)")
         self._db = db_pool
         self._ensure_table()
         self._batch_total = 0
@@ -312,8 +329,16 @@ def _revert_fields(cur: Any, entries: List[Any]) -> int:
     import re
 
     ALLOWED = {
-        "email", "industry", "sub_industry", "ai_summary", "health_score",
-        "tech_stack", "ssl_valid", "cms_detected", "site_speed_ms", "pain_points",
+        "email",
+        "industry",
+        "sub_industry",
+        "ai_summary",
+        "health_score",
+        "tech_stack",
+        "ssl_valid",
+        "cms_detected",
+        "site_speed_ms",
+        "pain_points",
     }
     rolled_back = 0
 
@@ -321,7 +346,7 @@ def _revert_fields(cur: Any, entries: List[Any]) -> int:
         field = entry["field_name"]
         if field not in ALLOWED:
             continue
-        if not re.match(r'^[a-z_]+$', field):
+        if not re.match(r"^[a-z_]+$", field):
             logger.error("Invalid field name in rollback: %s", field)
             continue
 

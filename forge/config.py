@@ -38,6 +38,7 @@ _TOML_PATH = Path.home() / ".forge" / "config.toml"
 
 # ── Lightweight parsers (stdlib only) ───────────────────────────────────
 
+
 def _parse_dotenv(path: Path) -> Dict[str, str]:
     """
     Parse a .env file into a dict.
@@ -89,7 +90,7 @@ def _parse_toml_line(line: str, current_section: str, result: Dict[str, Dict[str
     key = key.strip()
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
-        value = value[1:-1].replace('\\"', '"').replace('\\\\', '\\')
+        value = value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
     for comment_char in (" #", "\t#"):
         idx = value.find(comment_char)
         if idx >= 0:
@@ -160,12 +161,13 @@ def _mask_secret(value: str) -> str:
 
 def _safe_toml_value(v: str) -> str:
     """Escape a value for safe TOML output."""
-    v = str(v).replace('\n', '').replace('\r', '')
-    v = v.replace('\\', '\\\\').replace('"', '\\"')
+    v = str(v).replace("\n", "").replace("\r", "")
+    v = v.replace("\\", "\\\\").replace('"', '\\"')
     return f'"{v}"'
 
 
 # ── ForgeConfig dataclass ──────────────────────────────────────────────
+
 
 @dataclass
 class ForgeConfig:
@@ -208,11 +210,13 @@ class ForgeConfig:
     dashboard_port: int = 8765
 
     # ── Secrets that should be masked in output ─────────────────────
-    _SECRET_FIELDS = frozenset({
-        "db_password",
-        "anthropic_api_key",
-        "sam_gov_api_key",
-    })
+    _SECRET_FIELDS = frozenset(
+        {
+            "db_password",
+            "anthropic_api_key",
+            "sam_gov_api_key",
+        }
+    )
 
     # ── Loading ─────────────────────────────────────────────────────
 
@@ -264,7 +268,12 @@ class ForgeConfig:
             layers.append({k: str(v) for k, v in cli_args.items() if v is not None})
 
         cls._apply_layers(config, layers)
-        logger.info("Config loaded — backend=%s, adapter=%s, workers=%d", config.db_backend, config.adapter, config.workers)
+        logger.info(
+            "Config loaded — backend=%s, adapter=%s, workers=%d",
+            config.db_backend,
+            config.adapter,
+            config.workers,
+        )
         return config
 
     # ── Persistence helpers ─────────────────────────────────────────
@@ -290,7 +299,7 @@ class ForgeConfig:
         elif field_type is float:
             setattr(self, key, float(value))
         elif field_type is bool:
-            setattr(self, key, value.lower() in ('true', '1', 'yes'))
+            setattr(self, key, value.lower() in ("true", "1", "yes"))
         else:
             setattr(self, key, value)
 
@@ -303,29 +312,40 @@ class ForgeConfig:
         d = self.as_dict()
 
         section_map = {
-            'db_backend': 'database', 'db_path': 'database', 'db_host': 'database',
-            'db_port': 'database', 'db_user': 'database', 'db_password': 'database', 'db_name': 'database',
-            'adapter': 'ai', 'anthropic_api_key': 'ai', 'ollama_url': 'ai',
-            'ollama_model': 'ai', 'claude_model': 'ai',
-            'workers': 'enrichment', 'batch_size': 'enrichment', 'rate_limit': 'enrichment',
-            'smtp_from': 'smtp', 'smtp_ehlo': 'smtp',
-            'sam_gov_api_key': 'samgov',
-            'dashboard_port': 'dashboard',
+            "db_backend": "database",
+            "db_path": "database",
+            "db_host": "database",
+            "db_port": "database",
+            "db_user": "database",
+            "db_password": "database",
+            "db_name": "database",
+            "adapter": "ai",
+            "anthropic_api_key": "ai",
+            "ollama_url": "ai",
+            "ollama_model": "ai",
+            "claude_model": "ai",
+            "workers": "enrichment",
+            "batch_size": "enrichment",
+            "rate_limit": "enrichment",
+            "smtp_from": "smtp",
+            "smtp_ehlo": "smtp",
+            "sam_gov_api_key": "samgov",
+            "dashboard_port": "dashboard",
         }
 
         sections: dict[str, list[tuple[str, str]]] = {}
         for key, value in d.items():
-            if key.startswith('_'):
+            if key.startswith("_"):
                 continue
             v = str(value)
-            if not v or v == '0' or v == '0.0':
+            if not v or v == "0" or v == "0.0":
                 continue
-            section = section_map.get(key, 'general')
+            section = section_map.get(key, "general")
             if section not in sections:
                 sections[section] = []
             sections[section].append((key, v))
 
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             for section, pairs in sections.items():
                 f.write(f"[{section}]\n")
                 for k, v in pairs:
@@ -385,6 +405,7 @@ class ForgeConfig:
         """Try to create a Claude adapter. Returns adapter or None."""
         try:
             from forge.adapters.claude import ClaudeAdapter
+
             adapter = ClaudeAdapter(api_key=self.anthropic_api_key, default_model=self.claude_model)
             logger.info("Auto-detected Claude adapter (API key present)")
             return adapter
@@ -396,6 +417,7 @@ class ForgeConfig:
         """Try to create an Ollama adapter. Returns adapter or None."""
         try:
             from forge.adapters.ollama import OllamaAdapter
+
             adapter = OllamaAdapter(base_url=self.ollama_url, default_model=self.ollama_model)
             if adapter.is_healthy():
                 logger.info("Auto-detected Ollama adapter at %s", self.ollama_url)
@@ -409,9 +431,11 @@ class ForgeConfig:
         """Return the appropriate AI adapter based on configuration."""
         if self.adapter == "claude":
             from forge.adapters.claude import ClaudeAdapter
+
             return ClaudeAdapter(api_key=self.anthropic_api_key, default_model=self.claude_model)
         if self.adapter == "ollama":
             from forge.adapters.ollama import OllamaAdapter
+
             return OllamaAdapter(base_url=self.ollama_url, default_model=self.ollama_model)
         if self.adapter == "none":
             logger.info("Adapter explicitly set to 'none' — email-only mode")
@@ -432,6 +456,7 @@ class ForgeConfig:
 
 # ── CLI subcommands ─────────────────────────────────────────────────────
 
+
 def cli_config_show() -> None:
     """Handle `forge config show` command."""
     config = ForgeConfig.load()
@@ -439,12 +464,23 @@ def cli_config_show() -> None:
 
 
 _CONFIG_SECTION_MAP = {
-    "db_backend": "database", "db_path": "database", "db_host": "database",
-    "db_port": "database", "db_user": "database", "db_password": "database", "db_name": "database",
-    "adapter": "ai", "anthropic_api_key": "ai", "ollama_url": "ai",
-    "ollama_model": "ai", "claude_model": "ai",
-    "workers": "enrichment", "batch_size": "enrichment", "rate_limit": "enrichment",
-    "smtp_from": "smtp", "smtp_ehlo": "smtp",
+    "db_backend": "database",
+    "db_path": "database",
+    "db_host": "database",
+    "db_port": "database",
+    "db_user": "database",
+    "db_password": "database",
+    "db_name": "database",
+    "adapter": "ai",
+    "anthropic_api_key": "ai",
+    "ollama_url": "ai",
+    "ollama_model": "ai",
+    "claude_model": "ai",
+    "workers": "enrichment",
+    "batch_size": "enrichment",
+    "rate_limit": "enrichment",
+    "smtp_from": "smtp",
+    "smtp_ehlo": "smtp",
     "sam_gov_api_key": "sam",
     "dashboard_port": "dashboard",
 }
@@ -474,7 +510,7 @@ def cli_config_set(key: str, value: str) -> None:
 
     section = _CONFIG_SECTION_MAP.get(key, "default")
     prefix = _SECTION_PREFIX.get(section, "")
-    toml_key = key[len(prefix):] if prefix and key.startswith(prefix) else key
+    toml_key = key[len(prefix) :] if prefix and key.startswith(prefix) else key
 
     toml_path = _TOML_PATH
     toml_path.parent.mkdir(parents=True, exist_ok=True)

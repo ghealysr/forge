@@ -208,17 +208,23 @@ def _get_db():
 
 # ── Tool Implementations ────────────────────────────────────────────────────
 
+
 def _insert_discovered_businesses(db, results: list) -> int:
     """Insert discovered businesses into the DB. Returns count inserted."""
     inserted = 0
     for biz in results:
         try:
             record = {
-                "name": biz.get("name"), "address_line1": biz.get("address"),
-                "city": biz.get("city"), "state": biz.get("state"),
-                "zip": biz.get("zip"), "phone": biz.get("phone"),
-                "website_url": biz.get("website"), "industry": biz.get("category"),
-                "latitude": biz.get("lat"), "longitude": biz.get("lon"),
+                "name": biz.get("name"),
+                "address_line1": biz.get("address"),
+                "city": biz.get("city"),
+                "state": biz.get("state"),
+                "zip": biz.get("zip"),
+                "phone": biz.get("phone"),
+                "website_url": biz.get("website"),
+                "industry": biz.get("category"),
+                "latitude": biz.get("lat"),
+                "longitude": biz.get("lon"),
             }
             record = {k: v for k, v in record.items() if v is not None}
             if record.get("name"):
@@ -241,7 +247,9 @@ def _tool_forge_discover(arguments: Dict[str, Any]) -> Dict[str, Any]:
     try:
         from forge.discovery.overture import OvertureDiscovery
     except ImportError:
-        return {"error": "DuckDB is required for Overture Maps discovery. Install it with: pip install duckdb"}
+        return {
+            "error": "DuckDB is required for Overture Maps discovery. Install it with: pip install duckdb"
+        }
 
     try:
         disco = OvertureDiscovery()
@@ -250,7 +258,13 @@ def _tool_forge_discover(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
         db = _get_db()
         inserted = _insert_discovered_businesses(db, results)
-        return {"businesses": results, "count": len(results), "inserted_to_db": inserted, "zip_code": zip_code, "industry": industry}
+        return {
+            "businesses": results,
+            "count": len(results),
+            "inserted_to_db": inserted,
+            "zip_code": zip_code,
+            "industry": industry,
+        }
     except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": str(e)}
 
@@ -280,7 +294,11 @@ def _tool_forge_enrich_record(arguments: Dict[str, Any]) -> Dict[str, Any]:
         if full_record:
             clean = _clean_for_json([full_record])[0]
             return {"status": "created", "business_id": business_id, "record": clean}
-        return {"status": "created", "business_id": business_id, "note": "Record created but could not be retrieved."}
+        return {
+            "status": "created",
+            "business_id": business_id,
+            "note": "Record created but could not be retrieved.",
+        }
     except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Failed to enrich record: {e}"}
 
@@ -304,7 +322,9 @@ def _tool_forge_stats(arguments: Dict[str, Any]) -> Dict[str, Any]:
         return {"error": f"Failed to get stats: {e}"}
 
 
-def _build_search_query(db, query: str, state: Optional[str], industry: Optional[str], limit: int) -> tuple:
+def _build_search_query(
+    db, query: str, state: Optional[str], industry: Optional[str], limit: int
+) -> tuple:
     """Build a parameterized search query. Returns (sql, params)."""
     conditions = []
     params = []
@@ -355,7 +375,12 @@ def _tool_forge_search(arguments: Dict[str, Any]) -> Dict[str, Any]:
     try:
         results = db.fetch_dicts(sql, tuple(params))
         clean_results = _clean_for_json(results)
-        return {"results": clean_results, "count": len(clean_results), "query": query, "filters": {"state": state, "industry": industry}}
+        return {
+            "results": clean_results,
+            "count": len(clean_results),
+            "query": query,
+            "filters": {"state": state, "industry": industry},
+        }
     except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Search failed: {e}"}
 
@@ -375,7 +400,11 @@ def _tool_forge_export(arguments: Dict[str, Any]) -> Dict[str, Any]:
     # Reject paths outside current directory or home
     home = os.path.expanduser("~")
     cwd = os.getcwd()
-    if not (output_path.startswith(cwd) or output_path.startswith(home) or output_path.startswith("/tmp")):
+    if not (
+        output_path.startswith(cwd)
+        or output_path.startswith(home)
+        or output_path.startswith("/tmp")
+    ):
         return {"error": "Export path must be within home directory or current directory"}
     if ".." in output_path:
         return {"error": "Path traversal not allowed"}
@@ -436,7 +465,9 @@ def _parse_filter(filter_expr: str, db) -> tuple:
     for part in parts:
         if "=" in part:
             key, value = part.split("=", 1)
-            cond, param = _parse_single_filter(key.strip().lower(), value.strip(), ph, db.is_postgres)
+            cond, param = _parse_single_filter(
+                key.strip().lower(), value.strip(), ph, db.is_postgres
+            )
             if cond:
                 conditions.append(cond)
             if param is not None:
@@ -477,10 +508,12 @@ def dispatch_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
 
 # ── JSON-RPC MCP Protocol Handler ───────────────────────────────────────────
 
+
 def _handle_initialize(req_id: Any) -> Dict[str, Any]:
     """Handle MCP initialize request."""
     return {
-        "jsonrpc": "2.0", "id": req_id,
+        "jsonrpc": "2.0",
+        "id": req_id,
         "result": {
             "protocolVersion": "2024-11-05",
             "capabilities": {"tools": {"listChanged": False}},
@@ -501,7 +534,8 @@ def _handle_tools_call(req_id: Any, params: Dict[str, Any]) -> Dict[str, Any]:
     result = dispatch_tool(tool_name, arguments)
     is_error = "error" in result
     return {
-        "jsonrpc": "2.0", "id": req_id,
+        "jsonrpc": "2.0",
+        "id": req_id,
         "result": {
             "content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)}],
             "isError": is_error,
@@ -531,11 +565,16 @@ def handle_request(request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return handler()
 
     if req_id is not None:
-        return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Method not found: {method}"}}
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {"code": -32601, "message": f"Method not found: {method}"},
+        }
     return None
 
 
 # ── Main Loop ───────────────────────────────────────────────────────────────
+
 
 def _read_message() -> Optional[Dict[str, Any]]:
     """Read a Content-Length framed JSON-RPC message from stdin.

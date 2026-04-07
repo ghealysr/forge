@@ -12,6 +12,7 @@ from forge.tools.web_scraper import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def scraper():
     """Create an AsyncWebScraper instance for calling internal methods."""
@@ -21,6 +22,7 @@ def scraper():
 # ---------------------------------------------------------------------------
 # Tests: decode_cf_email
 # ---------------------------------------------------------------------------
+
 
 class TestDecodeCfEmail:
     def test_known_encoded_value(self):
@@ -65,6 +67,7 @@ class TestDecodeCfEmail:
 # Tests: _is_valid_email
 # ---------------------------------------------------------------------------
 
+
 class TestIsValidEmail:
     def test_good_emails(self, scraper):
         assert scraper._is_valid_email("john@tampadental.com") is True
@@ -96,6 +99,7 @@ class TestIsValidEmail:
 # ---------------------------------------------------------------------------
 # Tests: _detect_tech
 # ---------------------------------------------------------------------------
+
 
 class TestDetectTech:
     def test_finds_wordpress(self, scraper):
@@ -176,6 +180,7 @@ class TestDetectTech:
 # Tests: _extract_mailto
 # ---------------------------------------------------------------------------
 
+
 class TestExtractMailto:
     def test_finds_mailto_links(self, scraper):
         html = '<a href="mailto:info@dental.com">Email us</a>'
@@ -184,8 +189,7 @@ class TestExtractMailto:
 
     def test_multiple_mailto(self, scraper):
         html = (
-            '<a href="mailto:sales@biz.com">Sales</a>'
-            '<a href="mailto:support@biz.com">Support</a>'
+            '<a href="mailto:sales@biz.com">Sales</a><a href="mailto:support@biz.com">Support</a>'
         )
         emails = scraper._extract_mailto(html)
         assert "sales@biz.com" in emails
@@ -205,6 +209,7 @@ class TestExtractMailto:
 # ---------------------------------------------------------------------------
 # Tests: _extract_emails
 # ---------------------------------------------------------------------------
+
 
 class TestExtractEmails:
     def test_finds_regex_emails(self, scraper):
@@ -234,9 +239,10 @@ class TestExtractEmails:
 # Tests: _extract_jsonld_emails
 # ---------------------------------------------------------------------------
 
+
 class TestExtractJsonldEmails:
     def test_finds_schema_org_email(self, scraper):
-        html = '''
+        html = """
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -245,21 +251,21 @@ class TestExtractJsonldEmails:
             "email": "info@tampadental.com"
         }
         </script>
-        '''
+        """
         emails = scraper._extract_jsonld_emails(html)
         assert "info@tampadental.com" in emails
 
     def test_handles_mailto_prefix(self, scraper):
-        html = '''
+        html = """
         <script type="application/ld+json">
         {"email": "mailto:contact@biz.com"}
         </script>
-        '''
+        """
         emails = scraper._extract_jsonld_emails(html)
         assert "contact@biz.com" in emails
 
     def test_nested_jsonld(self, scraper):
-        html = '''
+        html = """
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -270,7 +276,7 @@ class TestExtractJsonldEmails:
             }
         }
         </script>
-        '''
+        """
         emails = scraper._extract_jsonld_emails(html)
         assert "support@company.net" in emails
 
@@ -288,6 +294,7 @@ class TestExtractJsonldEmails:
 # ---------------------------------------------------------------------------
 # Tests: _decode_obfuscated_emails
 # ---------------------------------------------------------------------------
+
 
 class TestDecodeObfuscatedEmails:
     def test_at_dot_obfuscation(self, scraper):
@@ -318,6 +325,7 @@ class TestDecodeObfuscatedEmails:
 # Tests: WebScrapeTool
 # ---------------------------------------------------------------------------
 
+
 class TestWebScrapeTool:
     def test_name_property(self):
         tool = WebScrapeTool()
@@ -340,11 +348,12 @@ class TestWebScrapeTool:
 # Tests: _extract_footer_emails
 # ---------------------------------------------------------------------------
 
+
 class TestExtractFooterEmails:
     def test_finds_email_in_footer(self, scraper):
         # Build a page where the email is in the last 20%
         padding = "x" * 1000
-        footer = '<footer>Contact: hello@realbiz.com</footer>'
+        footer = "<footer>Contact: hello@realbiz.com</footer>"
         html = padding + footer
         emails = scraper._extract_footer_emails(html)
         assert "hello@realbiz.com" in emails

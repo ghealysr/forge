@@ -1,12 +1,12 @@
 """Tests for forge.adapters — Ollama and Claude adapter static helpers and construction."""
 
-
 from forge.adapters.claude import _BACKOFF_DELAYS, CLAUDE_MODELS, ClaudeAdapter
 from forge.adapters.ollama import DEFAULT_OLLAMA_URL, OllamaAdapter
 
 # ---------------------------------------------------------------------------
 # Tests: OllamaAdapter construction
 # ---------------------------------------------------------------------------
+
 
 class TestOllamaAdapterConstruction:
     def test_default_url(self):
@@ -42,6 +42,7 @@ class TestOllamaAdapterConstruction:
 # ---------------------------------------------------------------------------
 # Tests: ClaudeAdapter static helpers
 # ---------------------------------------------------------------------------
+
 
 class TestClaudeAdapterHelpers:
     def test_extract_system(self):
@@ -129,6 +130,7 @@ class TestClaudeAdapterHelpers:
 # ---------------------------------------------------------------------------
 # Tests: ClaudeAdapter constants
 # ---------------------------------------------------------------------------
+
 
 class TestClaudeConstants:
     def test_models_list(self):

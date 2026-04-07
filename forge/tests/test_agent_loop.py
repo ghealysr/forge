@@ -9,6 +9,7 @@ from forge.core.tool_registry import SimpleTool, ToolRegistry
 # Mock adapter
 # ---------------------------------------------------------------------------
 
+
 class MockAdapter:
     """Minimal adapter that yields pre-canned responses."""
 
@@ -54,6 +55,7 @@ class FailAdapter:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_registry(*tools):
     reg = ToolRegistry()
     for t in tools:
@@ -83,6 +85,7 @@ def _failing_tool():
 # Tests: construction
 # ---------------------------------------------------------------------------
 
+
 class TestAgentConfig:
     def test_defaults(self):
         cfg = AgentConfig()
@@ -111,6 +114,7 @@ class TestAgentLoopConstruction:
 # ---------------------------------------------------------------------------
 # Tests: run() — text only, no tool calls
 # ---------------------------------------------------------------------------
+
 
 class TestRunTextOnly:
     def test_simple_text_response_completes(self):
@@ -142,7 +146,9 @@ class TestRunTextOnly:
 
     def test_task_failed_in_text(self):
         MockAdapter(["Cannot proceed. TASK_FAILED"])
-        loop = AgentLoop(MockAdapter(["Cannot proceed. TASK_FAILED"]), _make_registry(), AgentConfig())
+        loop = AgentLoop(
+            MockAdapter(["Cannot proceed. TASK_FAILED"]), _make_registry(), AgentConfig()
+        )
         result = loop.run("Impossible task")
         assert result.status == "failed"
 
@@ -156,6 +162,7 @@ class TestRunTextOnly:
 # ---------------------------------------------------------------------------
 # Tests: run() — with tool calls
 # ---------------------------------------------------------------------------
+
 
 class TestRunWithTools:
     def test_tool_call_dispatched(self):
@@ -229,6 +236,7 @@ class TestRunWithTools:
 # Tests: stop()
 # ---------------------------------------------------------------------------
 
+
 class TestStop:
     def test_stop_sets_running_false(self):
         adapter = MockAdapter([])
@@ -241,6 +249,7 @@ class TestStop:
 # ---------------------------------------------------------------------------
 # Tests: _should_stop
 # ---------------------------------------------------------------------------
+
 
 class TestShouldStop:
     def test_detects_task_complete(self):
@@ -267,6 +276,7 @@ class TestShouldStop:
 # ---------------------------------------------------------------------------
 # Tests: _determine_status
 # ---------------------------------------------------------------------------
+
 
 class TestDetermineStatus:
     def _loop(self, **overrides):
@@ -327,6 +337,7 @@ class TestDetermineStatus:
 # Tests: max turns limit
 # ---------------------------------------------------------------------------
 
+
 class TestMaxTurns:
     @patch("time.sleep")  # Don't actually sleep
     def test_max_turns_respected(self, mock_sleep):
@@ -347,6 +358,7 @@ class TestMaxTurns:
 # Tests: consecutive error circuit breaker
 # ---------------------------------------------------------------------------
 
+
 class TestCircuitBreaker:
     @patch("time.sleep")  # Don't actually sleep during backoff
     def test_circuit_breaker_triggers(self, mock_sleep):
@@ -364,6 +376,7 @@ class TestCircuitBreaker:
 # ---------------------------------------------------------------------------
 # Tests: context compaction triggers
 # ---------------------------------------------------------------------------
+
 
 class TestContextCompaction:
     def test_compaction_triggers_when_needed(self):
@@ -385,6 +398,7 @@ class TestContextCompaction:
 # ---------------------------------------------------------------------------
 # Tests: on_turn_complete callback
 # ---------------------------------------------------------------------------
+
 
 class TestCallback:
     def test_callback_invoked(self):

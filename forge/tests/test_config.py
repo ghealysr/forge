@@ -1,4 +1,5 @@
 """Tests for ForgeConfig."""
+
 import os
 
 import pytest
@@ -14,8 +15,10 @@ class TestConfigDefaults:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         assert config.db_backend == "sqlite"
         assert config.workers == 50
@@ -30,8 +33,10 @@ class TestConfigDefaults:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         assert config.batch_size == 5
 
@@ -44,8 +49,10 @@ class TestConfigDefaults:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         assert config.ollama_model == "gemma4:26b"
 
@@ -57,14 +64,17 @@ class TestConfigDefaults:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         db_config = config.to_db_config()
         assert "db_path" in db_config
 
     def test_to_db_config_postgres(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig(
             db_backend="postgres",
             db_host="myhost",
@@ -79,6 +89,7 @@ class TestConfigDefaults:
 
     def test_as_dict_contains_all_fields(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig()
         d = config.as_dict()
         assert "db_backend" in d
@@ -94,8 +105,10 @@ class TestConfigEnvOverrides:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         assert config.workers == 123
 
@@ -105,8 +118,10 @@ class TestConfigEnvOverrides:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load()
         assert config.anthropic_api_key == "sk-test-key-123"
 
@@ -116,8 +131,10 @@ class TestConfigEnvOverrides:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig.load(cli_args={"workers": "200"})
         assert config.workers == 200
 
@@ -131,8 +148,10 @@ class TestConfigTOML:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig, cli_config_set
+
         cli_config_set("workers", "100")
         config = ForgeConfig.load()
         assert config.workers == 100
@@ -140,6 +159,7 @@ class TestConfigTOML:
     def test_special_chars_roundtrip(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         from forge.config import _safe_toml_value
+
         # Verify escaping works
         val = _safe_toml_value('P@ss"w0rd')
         # Inner quotes should be escaped
@@ -152,6 +172,7 @@ class TestConfigTOML:
 class TestConfigShow:
     def test_show_masks_secrets(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig(anthropic_api_key="sk-ant-api-12345678")
         output = config.show()
         # Should mask the API key
@@ -160,6 +181,7 @@ class TestConfigShow:
 
     def test_show_returns_string(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig()
         output = config.show()
         assert isinstance(output, str)
@@ -169,12 +191,14 @@ class TestConfigShow:
 class TestConfigSetAndSave:
     def test_set_validates_key(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig()
         with pytest.raises(ValueError, match="Unknown config key"):
             config.set("nonexistent_key", "value")
 
     def test_set_converts_int(self):
         from forge.config import ForgeConfig
+
         config = ForgeConfig()
         config.set("workers", "200")
         assert config.workers == 200
@@ -184,8 +208,10 @@ class TestConfigSetAndSave:
         import importlib
 
         import forge.config
+
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
+
         config = ForgeConfig(workers=99, adapter="claude")
         config.save()
         toml_path = tmp_path / ".forge" / "config.toml"
@@ -197,14 +223,17 @@ class TestConfigSetAndSave:
 class TestMaskSecret:
     def test_mask_short_secret(self):
         from forge.config import _mask_secret
+
         assert _mask_secret("abc") == "****"
 
     def test_mask_long_secret(self):
         from forge.config import _mask_secret
+
         result = _mask_secret("sk-ant-12345678")
         assert result.startswith("sk-a")
         assert result.endswith("****")
 
     def test_mask_empty(self):
         from forge.config import _mask_secret
+
         assert _mask_secret("") == "(not set)"

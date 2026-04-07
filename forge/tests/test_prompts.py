@@ -1,6 +1,5 @@
 """Tests for forge.enrichment.prompts — prompt templates for AI enrichment."""
 
-
 from forge.enrichment.prompts import (
     INDUSTRY_LIST,
     build_batch_enrichment_prompt,
@@ -13,6 +12,7 @@ from forge.enrichment.prompts import (
 # ---------------------------------------------------------------------------
 # Tests: INDUSTRY_LIST
 # ---------------------------------------------------------------------------
+
 
 class TestIndustryList:
     def test_contains_key_industries(self):
@@ -30,6 +30,7 @@ class TestIndustryList:
 # ---------------------------------------------------------------------------
 # Tests: build_single_enrichment_prompt
 # ---------------------------------------------------------------------------
+
 
 class TestSingleEnrichmentPrompt:
     def test_includes_business_name(self):
@@ -73,6 +74,7 @@ class TestSingleEnrichmentPrompt:
 # Tests: build_batch_enrichment_prompt
 # ---------------------------------------------------------------------------
 
+
 class TestBatchEnrichmentPrompt:
     def test_includes_all_businesses(self):
         businesses = [
@@ -97,6 +99,7 @@ class TestBatchEnrichmentPrompt:
 # ---------------------------------------------------------------------------
 # Tests: build_industry_classification_prompt
 # ---------------------------------------------------------------------------
+
 
 class TestIndustryClassificationPrompt:
     def test_includes_business_name(self):
@@ -124,6 +127,7 @@ class TestIndustryClassificationPrompt:
 # ---------------------------------------------------------------------------
 # Tests: build_health_score_prompt
 # ---------------------------------------------------------------------------
+
 
 class TestHealthScorePrompt:
     def test_includes_data_fields(self):
@@ -158,6 +162,7 @@ class TestHealthScorePrompt:
 # ---------------------------------------------------------------------------
 # Tests: build_summary_prompt
 # ---------------------------------------------------------------------------
+
 
 class TestSummaryPrompt:
     def test_includes_business_details(self):

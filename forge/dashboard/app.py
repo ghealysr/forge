@@ -39,7 +39,9 @@ app = FastAPI(title="FORGE Dashboard")
 class CSPMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://unpkg.com; style-src 'self' 'unsafe-inline'"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://unpkg.com; style-src 'self' 'unsafe-inline'"
+        )
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
@@ -53,10 +55,26 @@ app.mount("/static", StaticFiles(directory=str(_HERE / "static")), name="static"
 # ── Industry whitelist (matches enrichment/pipeline.py) ────────────────────
 
 INDUSTRY_WHITELIST = [
-    "restaurant", "salon", "real-estate", "dentist", "gym",
-    "lawyer", "landscaping", "barber", "cleaning-service", "chiropractor",
-    "veterinarian", "auto-repair", "tattoo-shop", "accountant", "plumber",
-    "photographer", "dog-groomer", "electrician", "food-truck", "personal-trainer",
+    "restaurant",
+    "salon",
+    "real-estate",
+    "dentist",
+    "gym",
+    "lawyer",
+    "landscaping",
+    "barber",
+    "cleaning-service",
+    "chiropractor",
+    "veterinarian",
+    "auto-repair",
+    "tattoo-shop",
+    "accountant",
+    "plumber",
+    "photographer",
+    "dog-groomer",
+    "electrician",
+    "food-truck",
+    "personal-trainer",
 ]
 
 # ── Lazy-loaded singletons ─────────────────────────────────────────────────
@@ -75,6 +93,7 @@ def _get_config():
     if _config_instance is None:
         try:
             from forge.config import ForgeConfig
+
             _config_instance = ForgeConfig.load()
         except Exception as e:
             logger.warning("Could not load ForgeConfig: %s", e)
@@ -91,6 +110,7 @@ def _get_db():
             if _db_instance is None:
                 try:
                     from forge.db import ForgeDB
+
                     config = _get_config()
                     db_config = config.to_db_config()
                     _db_instance = ForgeDB.from_config(db_config)
@@ -103,6 +123,7 @@ def _get_db():
 
 class _MockConfig:
     """Minimal stand-in when forge.config is unavailable."""
+
     db_backend = "sqlite"
     db_path = "forge.db"
     db_host = ""
@@ -143,6 +164,7 @@ _enrichment_lock = threading.Lock()
 def _append_log(msg: str):
     """Append a message to the enrichment log (keeps last 10)."""
     import html as _html
+
     ts = datetime.now().strftime("%H:%M:%S")
     safe_msg = _html.escape(str(msg))
     with _enrichment_lock:
@@ -193,7 +215,9 @@ def _run_enrichment_loop(db, mode: str, workers: int, total: int) -> None:
             mode = "email"
             _append_log("Falling back to email-only mode")
 
-    pipeline = EnrichmentPipeline(db_pool=pool, ollama=ollama, web_scraper_workers=workers, batch_size=config.batch_size)
+    pipeline = EnrichmentPipeline(
+        db_pool=pool, ollama=ollama, web_scraper_workers=workers, batch_size=config.batch_size
+    )
     _append_log("Pipeline initialized, starting enrichment...")
 
     def stop_watcher():
@@ -239,67 +263,87 @@ def _run_enrichment_background(mode: str, workers: int):
 
 # ── Page Routes ────────────────────────────────────────────────────────────
 
+
 @app.get("/", response_class=HTMLResponse)
 async def page_index(request: Request):
     """Dashboard home page with stats overview."""
     db = _get_db()
     stats = db.get_stats() if db else {}
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "active_page": "dashboard",
-        "stats": stats,
-    })
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "active_page": "dashboard",
+            "stats": stats,
+        },
+    )
 
 
 @app.get("/discover", response_class=HTMLResponse)
 async def page_discover(request: Request):
     """Discovery page — search for businesses by ZIP."""
-    return templates.TemplateResponse("discover.html", {
-        "request": request,
-        "active_page": "discover",
-        "industries": INDUSTRY_WHITELIST,
-    })
+    return templates.TemplateResponse(
+        "discover.html",
+        {
+            "request": request,
+            "active_page": "discover",
+            "industries": INDUSTRY_WHITELIST,
+        },
+    )
 
 
 @app.get("/enrich", response_class=HTMLResponse)
 async def page_enrich(request: Request):
     """Enrichment control page."""
-    return templates.TemplateResponse("enrich.html", {
-        "request": request,
-        "active_page": "enrich",
-    })
+    return templates.TemplateResponse(
+        "enrich.html",
+        {
+            "request": request,
+            "active_page": "enrich",
+        },
+    )
 
 
 @app.get("/import", response_class=HTMLResponse)
 async def page_import(request: Request):
     """CSV upload page."""
-    return templates.TemplateResponse("import.html", {
-        "request": request,
-        "active_page": "import",
-    })
+    return templates.TemplateResponse(
+        "import.html",
+        {
+            "request": request,
+            "active_page": "import",
+        },
+    )
 
 
 @app.get("/export", response_class=HTMLResponse)
 async def page_export(request: Request):
     """Export page."""
-    return templates.TemplateResponse("export.html", {
-        "request": request,
-        "active_page": "export",
-    })
+    return templates.TemplateResponse(
+        "export.html",
+        {
+            "request": request,
+            "active_page": "export",
+        },
+    )
 
 
 @app.get("/settings", response_class=HTMLResponse)
 async def page_settings(request: Request):
     """Settings page."""
     config = _get_config()
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
-        "active_page": "settings",
-        "config": config,
-    })
+    return templates.TemplateResponse(
+        "settings.html",
+        {
+            "request": request,
+            "active_page": "settings",
+            "config": config,
+        },
+    )
 
 
 # ── API Routes ─────────────────────────────────────────────────────────────
+
 
 @app.get("/api/stats")
 async def api_stats():
@@ -316,12 +360,14 @@ def _validate_discover_input(zip_code: str) -> Optional[HTMLResponse]:
     if not zip_code or len(zip_code) != 5:
         return HTMLResponse(
             '<div class="forge-card text-red-400 text-center py-4">'
-            'Please enter a valid 5-digit ZIP code</div>'
+            "Please enter a valid 5-digit ZIP code</div>"
         )
     return None
 
 
-def _format_discover_results(results: list, zip_code: str, industry: str, radius: int, limit: int) -> str:
+def _format_discover_results(
+    results: list, zip_code: str, industry: str, radius: int, limit: int
+) -> str:
     """Build HTML table from discovery results."""
     rows_html = ""
     for r in results:
@@ -343,10 +389,10 @@ def _format_discover_results(results: list, zip_code: str, industry: str, radius
         f'<input type="hidden" name="radius" value="{_esc(str(radius))}">'
         f'<input type="hidden" name="limit" value="{_esc(str(limit))}">'
         f'<button type="submit" class="forge-btn text-sm">Import All {len(results)} Results</button>'
-        f'</form></div>'
+        f"</form></div>"
         f'<div class="overflow-x-auto"><table class="forge-table">'
-        f'<thead><tr><th>Name</th><th>Address</th><th>City</th><th>State</th><th>Category</th><th>Website</th></tr></thead>'
-        f'<tbody>{rows_html}</tbody></table></div></div>'
+        f"<thead><tr><th>Name</th><th>Address</th><th>City</th><th>State</th><th>Category</th><th>Website</th></tr></thead>"
+        f"<tbody>{rows_html}</tbody></table></div></div>"
     )
 
 
@@ -367,8 +413,11 @@ async def api_discover(
     error = None
     try:
         from forge.discovery.overture import OvertureDiscovery
+
         discovery = OvertureDiscovery()
-        results = discovery.search(zip_code=zip_code, industry=industry or None, radius_miles=radius, limit=limit)
+        results = discovery.search(
+            zip_code=zip_code, industry=industry or None, radius_miles=radius, limit=limit
+        )
     except ImportError:
         error = "Discovery module not available. Install DuckDB: pip install duckdb"
     except Exception as e:
@@ -376,9 +425,13 @@ async def api_discover(
         logger.exception("Discovery failed")
 
     if error:
-        return HTMLResponse(f'<div class="forge-card text-red-400 text-center py-4">Discovery error: {_esc(str(error))}</div>')
+        return HTMLResponse(
+            f'<div class="forge-card text-red-400 text-center py-4">Discovery error: {_esc(str(error))}</div>'
+        )
     if not results:
-        return HTMLResponse('<div class="forge-card text-gray-400 text-center py-4">No results found for this search</div>')
+        return HTMLResponse(
+            '<div class="forge-card text-gray-400 text-center py-4">No results found for this search</div>'
+        )
     return HTMLResponse(_format_discover_results(results, zip_code, industry, radius, limit))
 
 
@@ -393,12 +446,12 @@ async def api_import_results(
     db = _get_db()
     if not db:
         return HTMLResponse(
-            '<div class="forge-card text-red-400 text-center py-4">'
-            'Database not available</div>'
+            '<div class="forge-card text-red-400 text-center py-4">Database not available</div>'
         )
 
     try:
         from forge.discovery.overture import OvertureDiscovery
+
         discovery = OvertureDiscovery()
         results = discovery.search(
             zip_code=zip_code,
@@ -409,7 +462,7 @@ async def api_import_results(
     except Exception as e:
         return HTMLResponse(
             f'<div class="forge-card text-red-400 text-center py-4">'
-            f'Discovery error: {_esc(str(e))}</div>'
+            f"Discovery error: {_esc(str(e))}</div>"
         )
 
     imported = 0
@@ -425,7 +478,7 @@ async def api_import_results(
         f'<p class="text-2xl font-bold text-amber-400">{imported:,}</p>'
         f'<p class="text-gray-400 mt-1">businesses imported to database</p>'
         f'<a href="/enrich" class="forge-btn inline-block mt-4">Start Enrichment</a>'
-        f'</div>'
+        f"</div>"
     )
 
 
@@ -442,7 +495,7 @@ async def api_enrich_start(
         if _enrichment_stats["running"]:
             return HTMLResponse(
                 '<div class="forge-card text-amber-400 text-center py-3">'
-                'Enrichment is already running</div>'
+                "Enrichment is already running</div>"
             )
         _enrichment_stats["running"] = True  # Set BEFORE releasing lock to prevent TOCTOU race
 
@@ -457,7 +510,7 @@ async def api_enrich_start(
 
     return HTMLResponse(
         '<div class="forge-card text-green-400 text-center py-3">'
-        'Enrichment started! Stats will update below.</div>'
+        "Enrichment started! Stats will update below.</div>"
     )
 
 
@@ -467,7 +520,7 @@ async def api_enrich_stop():
     _enrichment_stop.set()
     return HTMLResponse(
         '<div class="forge-card text-amber-400 text-center py-3">'
-        'Stop signal sent. Enrichment will finish current batch and stop.</div>'
+        "Stop signal sent. Enrichment will finish current batch and stop.</div>"
     )
 
 
@@ -525,11 +578,15 @@ async def api_upload(file: UploadFile = File(...)):
     Security: uses secrets.token_hex for filenames, enforces MAX_UPLOAD_SIZE.
     """
     if not file.filename or not file.filename.endswith(".csv"):
-        return HTMLResponse('<div class="forge-card text-red-400 text-center py-4">Please upload a .csv file</div>')
+        return HTMLResponse(
+            '<div class="forge-card text-red-400 text-center py-4">Please upload a .csv file</div>'
+        )
 
     db = _get_db()
     if not db:
-        return HTMLResponse('<div class="forge-card text-red-400 text-center py-4">Database not available</div>')
+        return HTMLResponse(
+            '<div class="forge-card text-red-400 text-center py-4">Database not available</div>'
+        )
 
     # Security: random filename via secrets.token_hex, size check via MAX_UPLOAD_SIZE
     tmp_path = tmp_dir = ""
@@ -537,10 +594,14 @@ async def api_upload(file: UploadFile = File(...)):
         tmp_path, tmp_dir = await _save_upload_to_temp(file)
         result = db.import_csv(tmp_path, return_details=True)
     except ValueError as ve:
-        return HTMLResponse(f'<div class="forge-card text-red-400 text-center py-4">{_esc(str(ve))}</div>')
+        return HTMLResponse(
+            f'<div class="forge-card text-red-400 text-center py-4">{_esc(str(ve))}</div>'
+        )
     except Exception as e:
         logger.exception("Upload failed")
-        return HTMLResponse(f'<div class="forge-card text-red-400 text-center py-4">Upload error: {_esc(str(e))}</div>')
+        return HTMLResponse(
+            f'<div class="forge-card text-red-400 text-center py-4">Upload error: {_esc(str(e))}</div>'
+        )
     finally:
         try:
             if tmp_path and os.path.exists(tmp_path):
@@ -551,7 +612,9 @@ async def api_upload(file: UploadFile = File(...)):
             pass
 
     if result.get("status") == "error":
-        return HTMLResponse(f'<div class="forge-card text-red-400 text-center py-4">Import error: {_esc(result.get("error", "Unknown error"))}</div>')
+        return HTMLResponse(
+            f'<div class="forge-card text-red-400 text-center py-4">Import error: {_esc(result.get("error", "Unknown error"))}</div>'
+        )
     return _format_upload_result(result)
 
 
@@ -567,6 +630,7 @@ def _execute_export_query(db, where_clause: Optional[str], limit_clause: str = "
     with db._backend.connection() as conn:
         if db.is_postgres:
             import psycopg2.extras
+
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur.execute(query)
             rows = [dict(r) for r in cur.fetchall()]
@@ -592,7 +656,16 @@ def _generate_preview_html(db, where_clause: Optional[str], limit: int) -> Respo
         )
 
     cols = list(rows[0].keys())
-    show_cols = ["name", "city", "state", "email", "website_url", "industry", "health_score", "last_enriched_at"]
+    show_cols = [
+        "name",
+        "city",
+        "state",
+        "email",
+        "website_url",
+        "industry",
+        "health_score",
+        "last_enriched_at",
+    ]
     display_cols = [c for c in show_cols if c in cols] or cols[:8]
 
     header = "".join(f"<th>{c}</th>" for c in display_cols)
@@ -603,7 +676,7 @@ def _generate_preview_html(db, where_clause: Optional[str], limit: int) -> Respo
 
     return HTMLResponse(
         f'<table class="forge-table"><thead><tr>{header}</tr></thead>'
-        f'<tbody>{body}</tbody></table>'
+        f"<tbody>{body}</tbody></table>"
         f'<p class="text-xs text-gray-500 mt-2">Showing {len(rows)} rows</p>'
     )
 
@@ -667,6 +740,7 @@ async def api_export_csv(
         return JSONResponse({"error": "Database not available"}, status_code=500)
 
     from forge.db import ForgeDB
+
     where_clause = ForgeDB.SAFE_WHERE_FILTERS.get(filter, None)
 
     if preview == "true":
@@ -689,10 +763,19 @@ async def api_settings(request: Request):
 
     try:
         from forge.config import cli_config_set
+
         for key in [
-            "db_backend", "db_path", "db_port", "db_name",
-            "adapter", "anthropic_api_key", "ollama_url", "ollama_model",
-            "workers", "batch_size", "rate_limit",
+            "db_backend",
+            "db_path",
+            "db_port",
+            "db_name",
+            "adapter",
+            "anthropic_api_key",
+            "ollama_url",
+            "ollama_model",
+            "workers",
+            "batch_size",
+            "rate_limit",
         ]:
             value = form.get(key, "")
             if value is not None and str(value).strip():
@@ -709,21 +792,22 @@ async def api_settings(request: Request):
     except ImportError:
         return HTMLResponse(
             '<div class="forge-card text-red-400 text-center py-3">'
-            'Could not import forge.config — settings not saved</div>'
+            "Could not import forge.config — settings not saved</div>"
         )
     except Exception as e:
         return HTMLResponse(
             f'<div class="forge-card text-red-400 text-center py-3">'
-            f'Error saving settings: {_esc(str(e))}</div>'
+            f"Error saving settings: {_esc(str(e))}</div>"
         )
 
     return HTMLResponse(
         f'<div class="forge-card text-green-400 text-center py-3">'
-        f'Settings saved: {", ".join(saved)}</div>'
+        f"Settings saved: {', '.join(saved)}</div>"
     )
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
+
 
 def _esc(text: str) -> str:
     """HTML-escape a string."""
@@ -738,9 +822,11 @@ def _esc(text: str) -> str:
 
 # ── Entry point ────────────────────────────────────────────────────────────
 
+
 def main():
     """Run the dashboard server."""
     import uvicorn
+
     config = _get_config()
     port = getattr(config, "dashboard_port", 8765)
     logger.info("Starting FORGE Dashboard on port %d", port)

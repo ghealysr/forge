@@ -26,14 +26,14 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("forge.importers.fcc_uls")
 
 # FCC EN.dat column positions (0-indexed)
-COL_ENTITY_TYPE = 5      # L=Licensee, CL=Contact, etc.
-COL_ENTITY_NAME = 7      # Business/organization name
-COL_PHONE = 12           # 10-digit phone
-COL_EMAIL = 14           # Email address
-COL_STREET = 15          # Street address
-COL_CITY = 16            # City
-COL_STATE = 17           # State (2-letter)
-COL_ZIP = 18             # ZIP code
+COL_ENTITY_TYPE = 5  # L=Licensee, CL=Contact, etc.
+COL_ENTITY_NAME = 7  # Business/organization name
+COL_PHONE = 12  # 10-digit phone
+COL_EMAIL = 14  # Email address
+COL_STREET = 15  # Street address
+COL_CITY = 16  # City
+COL_STATE = 17  # State (2-letter)
+COL_ZIP = 18  # ZIP code
 COL_APPLICANT_TYPE = 23  # C=Corp, F=LLC, I=Individual, etc.
 
 # Business entity types (exclude individuals and government)
@@ -46,8 +46,8 @@ def normalize_phone(phone: str) -> Optional[str]:
     """Strip a phone number to 10 digits."""
     if not phone:
         return None
-    digits = re.sub(r'\D', '', phone)
-    if len(digits) == 11 and digits.startswith('1'):
+    digits = re.sub(r"\D", "", phone)
+    if len(digits) == 11 and digits.startswith("1"):
         digits = digits[1:]
     if len(digits) == 10:
         return digits
@@ -58,9 +58,26 @@ def normalize_name(name: str) -> str:
     """Normalize a business name for matching."""
     name = name.upper().strip()
     # Remove common suffixes
-    for suffix in [" LLC", " INC", " INC.", " CORP", " CORP.", " CO.", " CO",
-                   " LTD", " LTD.", " LP", " LLP", " PC", " PLLC", " PA",
-                   " DBA", " THE", ",", "."]:
+    for suffix in [
+        " LLC",
+        " INC",
+        " INC.",
+        " CORP",
+        " CORP.",
+        " CO.",
+        " CO",
+        " LTD",
+        " LTD.",
+        " LP",
+        " LLP",
+        " PC",
+        " PLLC",
+        " PA",
+        " DBA",
+        " THE",
+        ",",
+        ".",
+    ]:
         name = name.replace(suffix, "")
     return name.strip()
 
@@ -73,9 +90,9 @@ def parse_en_file(filepath: str) -> List[Dict[str, Any]]:
     Filters to business entities (not individuals) with email addresses.
     """
     records = []
-    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
-            fields = line.strip().split('|')
+            fields = line.strip().split("|")
             if len(fields) < 24:
                 continue
 
@@ -97,15 +114,17 @@ def parse_en_file(filepath: str) -> List[Dict[str, Any]]:
             if not name:
                 continue
 
-            records.append({
-                "name": name,
-                "name_normalized": normalize_name(name),
-                "phone": phone,
-                "email": email.lower(),
-                "city": fields[COL_CITY].strip().upper(),
-                "state": fields[COL_STATE].strip().upper(),
-                "zip": fields[COL_ZIP].strip()[:5],
-            })
+            records.append(
+                {
+                    "name": name,
+                    "name_normalized": normalize_name(name),
+                    "phone": phone,
+                    "email": email.lower(),
+                    "city": fields[COL_CITY].strip().upper(),
+                    "state": fields[COL_STATE].strip().upper(),
+                    "zip": fields[COL_ZIP].strip()[:5],
+                }
+            )
 
     return records
 
@@ -132,19 +151,22 @@ def build_name_state_index(records: List[Dict]) -> Dict[str, Dict]:
 
 def _save_checkpoint(last_id: str, total_checked: int, stats: Dict[str, int]) -> None:
     """Save resume checkpoint to disk."""
-    with open(CHECKPOINT_FILE, 'w') as f:
-        json.dump({
-            "last_id": last_id,
-            "total_checked": total_checked,
-            "stats": stats,
-            "timestamp": time.time(),
-        }, f)
+    with open(CHECKPOINT_FILE, "w") as f:
+        json.dump(
+            {
+                "last_id": last_id,
+                "total_checked": total_checked,
+                "stats": stats,
+                "timestamp": time.time(),
+            },
+            f,
+        )
 
 
 def _load_checkpoint() -> Optional[Dict]:
     """Load resume checkpoint from disk."""
     try:
-        with open(CHECKPOINT_FILE, 'r') as f:
+        with open(CHECKPOINT_FILE, "r") as f:
             data = json.load(f)
             age_hours = (time.time() - data.get("timestamp", 0)) / 3600
             if age_hours > 48:
@@ -263,15 +285,19 @@ def _match_row_to_indexes(
             match_type = "name_state"
 
     if matched_email:
-        update_batch.append((
-            matched_email,
-            f"fcc_uls_{match_type}",
-            str(row["id"]),
-            match_type,
-        ))
+        update_batch.append(
+            (
+                matched_email,
+                f"fcc_uls_{match_type}",
+                str(row["id"]),
+                match_type,
+            )
+        )
 
 
-def _fetch_unenriched_page(db, last_id: Optional[str], fetch_size: int, ph: str, uuid_cast: str) -> list:
+def _fetch_unenriched_page(
+    db, last_id: Optional[str], fetch_size: int, ph: str, uuid_cast: str
+) -> list:
     """Fetch a page of businesses without email for FCC matching."""
     if last_id is None:
         return db.fetch_dicts(
@@ -287,8 +313,12 @@ def _fetch_unenriched_page(db, last_id: Optional[str], fetch_size: int, ph: str,
 
 
 def _scan_and_match(
-    db, phone_index: Dict[str, Dict], name_index: Dict[str, Dict],
-    stats: Dict[str, int], last_id: Optional[str], total_checked: int,
+    db,
+    phone_index: Dict[str, Dict],
+    name_index: Dict[str, Dict],
+    stats: Dict[str, int],
+    last_id: Optional[str],
+    total_checked: int,
 ) -> None:
     """Scan businesses via keyset pagination and match against FCC indexes."""
     fetch_size = 5000
@@ -312,7 +342,9 @@ def _scan_and_match(
                 update_batch = []
             if total_checked % 50000 == 0:
                 _save_checkpoint(str(last_id), total_checked, stats)
-                logger.info("Progress: checked %d, matched %d", total_checked, stats["emails_written"])
+                logger.info(
+                    "Progress: checked %d, matched %d", total_checked, stats["emails_written"]
+                )
         except Exception as e:
             consecutive_errors += 1
             logger.error("DB error (attempt %d/10): %s", consecutive_errors, e)
@@ -321,7 +353,7 @@ def _scan_and_match(
                 raise
             if last_id:
                 _save_checkpoint(str(last_id), total_checked, stats)
-            time.sleep(min(2 ** consecutive_errors * 5, 120))
+            time.sleep(min(2**consecutive_errors * 5, 120))
 
     if update_batch:
         _flush_updates(db, update_batch, stats)
@@ -340,8 +372,12 @@ def import_fcc_to_db(
     db = _get_forgedb(db_path)
 
     stats = {
-        "fcc_records_parsed": 0, "phone_matches": 0, "name_matches": 0,
-        "emails_written": 0, "already_had_email": 0, "errors": 0,
+        "fcc_records_parsed": 0,
+        "phone_matches": 0,
+        "name_matches": 0,
+        "emails_written": 0,
+        "already_had_email": 0,
+        "errors": 0,
     }
 
     last_id = None
@@ -352,8 +388,12 @@ def import_fcc_to_db(
             last_id = checkpoint["last_id"]
             total_checked = checkpoint["total_checked"]
             stats.update(checkpoint.get("stats", {}))
-            logger.info("Resuming from checkpoint: last_id=%s, checked=%d, emails=%d",
-                        last_id, total_checked, stats["emails_written"])
+            logger.info(
+                "Resuming from checkpoint: last_id=%s, checked=%d, emails=%d",
+                last_id,
+                total_checked,
+                stats["emails_written"],
+            )
 
     all_records = _parse_all_en_files(data_dir)
     stats["fcc_records_parsed"] = len(all_records)
@@ -363,8 +403,9 @@ def import_fcc_to_db(
 
     phone_index = build_phone_index(all_records)
     name_index = build_name_state_index(all_records)
-    logger.info("Phone index: %d entries, Name+State index: %d entries",
-                len(phone_index), len(name_index))
+    logger.info(
+        "Phone index: %d entries, Name+State index: %d entries", len(phone_index), len(name_index)
+    )
 
     _scan_and_match(db, phone_index, name_index, stats, last_id, total_checked)
 
@@ -380,6 +421,7 @@ def import_fcc_to_db(
 
 if __name__ == "__main__":
     import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -387,17 +429,23 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser(description="Import FCC ULS emails into FORGE")
-    parser.add_argument("--data-dir", default="forge/data/fcc",
-                        help="Directory containing extracted FCC EN.dat files")
-    parser.add_argument("--db-path", type=str, default=None,
-                        help="SQLite database path (default: use PostgreSQL from env vars)")
-    parser.add_argument("--resume", action="store_true",
-                        help="Resume from last checkpoint")
+    parser.add_argument(
+        "--data-dir",
+        default="forge/data/fcc",
+        help="Directory containing extracted FCC EN.dat files",
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default=None,
+        help="SQLite database path (default: use PostgreSQL from env vars)",
+    )
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     args = parser.parse_args()
 
     stats = import_fcc_to_db(args.data_dir, db_path=args.db_path, resume=args.resume)
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("FCC ULS IMPORT RESULTS")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     for k, v in stats.items():
         print(f"  {k}: {v:,}")

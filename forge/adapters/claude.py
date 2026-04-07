@@ -139,11 +139,15 @@ class ClaudeAdapter:
         for tool in tools:
             if tool.get("type") == "function":
                 func = tool["function"]
-                converted.append({
-                    "name": func["name"],
-                    "description": func.get("description", ""),
-                    "input_schema": func.get("parameters", {"type": "object", "properties": {}}),
-                })
+                converted.append(
+                    {
+                        "name": func["name"],
+                        "description": func.get("description", ""),
+                        "input_schema": func.get(
+                            "parameters", {"type": "object", "properties": {}}
+                        ),
+                    }
+                )
             elif "name" in tool:
                 # Already in Anthropic format
                 converted.append(tool)
@@ -188,13 +192,22 @@ class ClaudeAdapter:
             raise last_error  # type: ignore[misc]
 
     def _build_request_kwargs(
-        self, messages: List[Dict[str, Any]], model: str,
-        tools: Optional[List[Dict[str, Any]]], timeout: float, temperature: float,
+        self,
+        messages: List[Dict[str, Any]],
+        model: str,
+        tools: Optional[List[Dict[str, Any]]],
+        timeout: float,
+        temperature: float,
     ) -> Dict[str, Any]:
         """Build the Anthropic Messages API request kwargs."""
         system_text, user_messages = self._extract_system(messages)
         converted = self._convert_messages(user_messages)
-        kwargs: Dict[str, Any] = {"model": model, "messages": converted, "max_tokens": 4096, "temperature": temperature}
+        kwargs: Dict[str, Any] = {
+            "model": model,
+            "messages": converted,
+            "max_tokens": 4096,
+            "temperature": temperature,
+        }
         if system_text:
             kwargs["system"] = system_text
         if tools:
@@ -228,7 +241,12 @@ class ClaudeAdapter:
         response = self._call_with_retry(_do_create)
         result = self._response_to_ollama_format(response)
         usage = response.usage
-        logger.debug("Claude response: model=%s, input_tokens=%d, output_tokens=%d", model, usage.input_tokens, usage.output_tokens)
+        logger.debug(
+            "Claude response: model=%s, input_tokens=%d, output_tokens=%d",
+            model,
+            usage.input_tokens,
+            usage.output_tokens,
+        )
         return result
 
     @staticmethod
@@ -246,12 +264,14 @@ class ClaudeAdapter:
             if block.type == "text":
                 content_text += block.text
             elif block.type == "tool_use":
-                tool_calls.append({
-                    "function": {
-                        "name": block.name,
-                        "arguments": block.input,
-                    },
-                })
+                tool_calls.append(
+                    {
+                        "function": {
+                            "name": block.name,
+                            "arguments": block.input,
+                        },
+                    }
+                )
 
         result: Dict[str, Any] = {
             "message": {
@@ -267,9 +287,15 @@ class ClaudeAdapter:
 
         return result
 
-    def _build_simple_kwargs(self, prompt: str, model: str, timeout: float, temperature: float, think: bool) -> Dict[str, Any]:
+    def _build_simple_kwargs(
+        self, prompt: str, model: str, timeout: float, temperature: float, think: bool
+    ) -> Dict[str, Any]:
         """Build request kwargs for generate_simple."""
-        kwargs: Dict[str, Any] = {"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096}
+        kwargs: Dict[str, Any] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 4096,
+        }
         if think:
             kwargs["temperature"] = 1
             kwargs["thinking"] = {"type": "enabled", "budget_tokens": 2048}

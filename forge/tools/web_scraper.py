@@ -37,7 +37,7 @@ _EMAIL_RE = re.compile(
     re.IGNORECASE,
 )
 
-_MAILTO_RE = re.compile(r'mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})', re.IGNORECASE)
+_MAILTO_RE = re.compile(r"mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})", re.IGNORECASE)
 
 # Cloudflare email obfuscation pattern
 _CF_EMAIL_RE = re.compile(r'data-cfemail="([a-fA-F0-9]+)"')
@@ -56,11 +56,24 @@ _HTML_ENTITY_EMAIL_RE = re.compile(
 
 # Common false positive email patterns to exclude
 _FAKE_EMAIL_DOMAINS = {
-    "example.com", "email.com", "domain.com", "yoursite.com",
-    "yourdomain.com", "company.com", "test.com", "placeholder.com",
-    "sentry.io", "wixpress.com", "wordpress.org", "w3.org",
-    "schema.org", "googleapis.com", "gravatar.com", "wp.com",
-    "sentry-next.wixpress.com", "changedetection.io",
+    "example.com",
+    "email.com",
+    "domain.com",
+    "yoursite.com",
+    "yourdomain.com",
+    "company.com",
+    "test.com",
+    "placeholder.com",
+    "sentry.io",
+    "wixpress.com",
+    "wordpress.org",
+    "w3.org",
+    "schema.org",
+    "googleapis.com",
+    "gravatar.com",
+    "wp.com",
+    "sentry-next.wixpress.com",
+    "changedetection.io",
 }
 
 # ── Tech stack detection patterns (from HTTP headers + HTML) ─────────────────
@@ -128,16 +141,36 @@ _TECH_PATTERNS = {
 
 # CMS mapping for primary CMS detection
 _CMS_PRIORITY = [
-    "wordpress", "shopify", "squarespace", "wix", "webflow",
-    "drupal", "joomla", "ghost", "weebly", "godaddy-builder",
+    "wordpress",
+    "shopify",
+    "squarespace",
+    "wix",
+    "webflow",
+    "drupal",
+    "joomla",
+    "ghost",
+    "weebly",
+    "godaddy-builder",
 ]
 
 # Pages to check for email addresses (in priority order)
 _CONTACT_PATHS = [
-    "/contact", "/contact-us", "/about", "/about-us",
-    "/team", "/staff", "/our-team", "/reach-us",
-    "/privacy-policy", "/privacy", "/terms", "/careers",
-    "/jobs", "/directory", "/people", "/leadership",
+    "/contact",
+    "/contact-us",
+    "/about",
+    "/about-us",
+    "/team",
+    "/staff",
+    "/our-team",
+    "/reach-us",
+    "/privacy-policy",
+    "/privacy",
+    "/terms",
+    "/careers",
+    "/jobs",
+    "/directory",
+    "/people",
+    "/leadership",
 ]
 
 # Maximum response body size: 5MB
@@ -153,7 +186,7 @@ def decode_cf_email(encoded: str) -> Optional[str]:
         key = int(encoded[:2], 16)
         decoded = ""
         for i in range(2, len(encoded), 2):
-            decoded += chr(int(encoded[i:i+2], 16) ^ key)
+            decoded += chr(int(encoded[i : i + 2], 16) ^ key)
         if "@" in decoded and "." in decoded.split("@")[-1]:
             return decoded.lower()
     except (ValueError, IndexError):
@@ -213,7 +246,14 @@ class AsyncWebScraper:
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def _extract_all_data(self, html: str, headers: Dict[str, str], resp_url: str, session: aiohttp.ClientSession, domain: str) -> Dict[str, Any]:
+    async def _extract_all_data(
+        self,
+        html: str,
+        headers: Dict[str, str],
+        resp_url: str,
+        session: aiohttp.ClientSession,
+        domain: str,
+    ) -> Dict[str, Any]:
         """Extract tech stack, CMS, and emails from a fetched page."""
         data: Dict[str, Any] = {}
 
@@ -241,7 +281,9 @@ class AsyncWebScraper:
         data["emails"] = sorted(emails)
         return data
 
-    async def _handle_ssl_fallback(self, session: aiohttp.ClientSession, url: str, start_time: float, result: Dict[str, Any]) -> None:
+    async def _handle_ssl_fallback(
+        self, session: aiohttp.ClientSession, url: str, start_time: float, result: Dict[str, Any]
+    ) -> None:
         """Retry a failed SSL request over plain HTTP."""
         result["ssl_valid"] = False
         try:
@@ -269,7 +311,9 @@ class AsyncWebScraper:
         except Exception:
             result["status"] = "ssl_and_http_failed"
 
-    async def _fetch_and_extract(self, session: aiohttp.ClientSession, url: str, domain: str, result: Dict[str, Any]) -> None:
+    async def _fetch_and_extract(
+        self, session: aiohttp.ClientSession, url: str, domain: str, result: Dict[str, Any]
+    ) -> None:
         """Fetch a URL and extract enrichment data into result dict."""
         start_time = time.monotonic()
         try:
@@ -285,7 +329,9 @@ class AsyncWebScraper:
                 body = await resp.content.read(_MAX_BODY_SIZE)
                 html = body.decode("utf-8", errors="replace")
                 result["status"] = "ok"
-                extracted = await self._extract_all_data(html, dict(resp.headers), str(resp.url), session, domain)
+                extracted = await self._extract_all_data(
+                    html, dict(resp.headers), str(resp.url), session, domain
+                )
                 result.update(extracted)
 
         except aiohttp.ClientSSLError:
@@ -305,8 +351,14 @@ class AsyncWebScraper:
             url = f"https://{url}"
 
         result: Dict[str, Any] = {
-            "url": url, "status": "unknown", "emails": [], "tech_stack": [],
-            "cms_detected": None, "ssl_valid": None, "site_speed_ms": None, "status_code": None,
+            "url": url,
+            "status": "unknown",
+            "emails": [],
+            "tech_stack": [],
+            "cms_detected": None,
+            "ssl_valid": None,
+            "site_speed_ms": None,
+            "status_code": None,
         }
 
         session = await self._get_session()
@@ -411,8 +463,8 @@ class AsyncWebScraper:
 
         # [at] / (at) / [dot] / (dot) obfuscation
         for match in _OBFUSCATED_EMAIL_RE.findall(html):
-            cleaned = re.sub(r'\s*[\[\(]\s*(?:at|AT)\s*[\]\)]\s*', '@', match)
-            cleaned = re.sub(r'\s*[\[\(]\s*(?:dot|DOT)\s*[\]\)]\s*', '.', cleaned)
+            cleaned = re.sub(r"\s*[\[\(]\s*(?:at|AT)\s*[\]\)]\s*", "@", match)
+            cleaned = re.sub(r"\s*[\[\(]\s*(?:dot|DOT)\s*[\]\)]\s*", ".", cleaned)
             cleaned = cleaned.lower().strip()
             if self._is_valid_email(cleaned):
                 emails.add(cleaned)
@@ -438,7 +490,7 @@ class AsyncWebScraper:
                 emails.add(email)
 
         # Check HTML comments in footer for hidden emails
-        comment_re = re.compile(r'<!--(.*?)-->', re.DOTALL)
+        comment_re = re.compile(r"<!--(.*?)-->", re.DOTALL)
         for comment in comment_re.findall(footer_html):
             for match in _EMAIL_RE.findall(comment):
                 email = match.lower().strip()
@@ -540,6 +592,7 @@ class AsyncWebScraper:
 
 # ── Synchronous wrapper for backward compatibility ───────────────────────────
 
+
 class WebScrapeTool:
     """
     Synchronous wrapper around AsyncWebScraper.
@@ -563,6 +616,7 @@ class WebScrapeTool:
             if loop is not None and loop.is_running():
                 # If already in an async context, create a new loop in a thread
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     result = pool.submit(self._run_async, url).result()
                 return result

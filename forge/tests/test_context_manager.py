@@ -1,11 +1,11 @@
 """Tests for forge.core.context_manager — conversation state and auto-compaction."""
 
-
 from forge.core.context_manager import ContextManager, Message
 
 # ---------------------------------------------------------------------------
 # Message dataclass
 # ---------------------------------------------------------------------------
+
 
 class TestMessage:
     def test_to_dict_basic(self):
@@ -31,6 +31,7 @@ class TestMessage:
 # set_system_prompt
 # ---------------------------------------------------------------------------
 
+
 class TestSetSystemPrompt:
     def test_stores_prompt(self):
         ctx = ContextManager()
@@ -48,6 +49,7 @@ class TestSetSystemPrompt:
 # ---------------------------------------------------------------------------
 # add_user_message / add_assistant_message
 # ---------------------------------------------------------------------------
+
 
 class TestAddMessages:
     def test_add_user_message(self):
@@ -91,6 +93,7 @@ class TestAddMessages:
 # add_tool_result
 # ---------------------------------------------------------------------------
 
+
 class TestAddToolResult:
     def test_stores_tool_result(self):
         ctx = ContextManager()
@@ -111,6 +114,7 @@ class TestAddToolResult:
 # ---------------------------------------------------------------------------
 # get_messages
 # ---------------------------------------------------------------------------
+
 
 class TestGetMessages:
     def test_returns_ordered_list(self):
@@ -139,6 +143,7 @@ class TestGetMessages:
 # estimated_tokens
 # ---------------------------------------------------------------------------
 
+
 class TestEstimatedTokens:
     def test_increases_with_messages(self):
         ctx = ContextManager()
@@ -163,6 +168,7 @@ class TestEstimatedTokens:
 # needs_compaction
 # ---------------------------------------------------------------------------
 
+
 class TestNeedsCompaction:
     def test_returns_false_when_empty(self):
         ctx = ContextManager(max_tokens=1000)
@@ -183,6 +189,7 @@ class TestNeedsCompaction:
 # ---------------------------------------------------------------------------
 # compact
 # ---------------------------------------------------------------------------
+
 
 class TestCompact:
     def test_compact_reduces_message_count(self):
@@ -279,6 +286,7 @@ class TestCompact:
 # ---------------------------------------------------------------------------
 # clear
 # ---------------------------------------------------------------------------
+
 
 class TestClear:
     def test_clear_resets_messages(self):

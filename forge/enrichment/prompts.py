@@ -147,10 +147,10 @@ def build_summary_prompt(business: Dict) -> str:
     """Focused prompt for business summary generation."""
     return f"""Write a 2-sentence summary for this business.
 
-Name: {business.get('name', 'Unknown')}
-Industry: {business.get('industry', 'unknown')}
-City: {business.get('city', '')}, {business.get('state', '')}
-Website: {business.get('website_url', 'none')}
+Name: {business.get("name", "Unknown")}
+Industry: {business.get("industry", "unknown")}
+City: {business.get("city", "")}, {business.get("state", "")}
+Website: {business.get("website_url", "none")}
 
 Respond with ONLY: {{"summary": "Your 2-sentence summary here"}}
 

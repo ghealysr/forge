@@ -1,6 +1,5 @@
 """Tests for forge.importers.sam_gov — SAM.gov entity parsing and normalization."""
 
-
 from forge.importers.sam_gov import (
     _build_params,
     _extract_entity,
@@ -10,6 +9,7 @@ from forge.importers.sam_gov import (
 # ---------------------------------------------------------------------------
 # Tests: normalize_name
 # ---------------------------------------------------------------------------
+
 
 class TestSamNormalizeName:
     def test_removes_llc(self):
@@ -33,6 +33,7 @@ class TestSamNormalizeName:
 # ---------------------------------------------------------------------------
 # Tests: _build_params
 # ---------------------------------------------------------------------------
+
 
 class TestBuildParams:
     def test_basic_params(self):
@@ -61,10 +62,18 @@ class TestBuildParams:
 # Tests: _extract_entity
 # ---------------------------------------------------------------------------
 
+
 class TestExtractEntity:
-    def _make_entity(self, org_name="ACME CORP", state="FL", city="TAMPA",
-                     zip_code="33602", email="info@acme.com",
-                     first="John", last="Smith"):
+    def _make_entity(
+        self,
+        org_name="ACME CORP",
+        state="FL",
+        city="TAMPA",
+        zip_code="33602",
+        email="info@acme.com",
+        first="John",
+        last="Smith",
+    ):
         return {
             "entityRegistration": {
                 "legalBusinessName": org_name,

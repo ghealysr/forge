@@ -52,8 +52,8 @@ def normalize_phone(phone: str) -> Optional[str]:
     """Strip phone to 10 digits."""
     if not phone:
         return None
-    digits = re.sub(r'\D', '', phone)
-    if len(digits) == 11 and digits.startswith('1'):
+    digits = re.sub(r"\D", "", phone)
+    if len(digits) == 11 and digits.startswith("1"):
         digits = digits[1:]
     return digits if len(digits) == 10 else None
 
@@ -89,7 +89,11 @@ def _parse_npi_result(r: Dict) -> Dict:
             primary_tax = tax.get("desc", "")
             break
 
-    phone = normalize_phone((practice_addr or {}).get("telephone_number", "")) if practice_addr else None
+    phone = (
+        normalize_phone((practice_addr or {}).get("telephone_number", ""))
+        if practice_addr
+        else None
+    )
     return {
         "npi": str(r.get("number", "")),
         "org_name": basic.get("organization_name", ""),
@@ -104,7 +108,13 @@ def _parse_npi_result(r: Dict) -> Dict:
 
 def query_npi_api(state: str, taxonomy: str = "", skip: int = 0, limit: int = 200) -> List[Dict]:
     """Query the NPI Registry API for providers in a state."""
-    params: Dict[str, Any] = {"version": "2.1", "enumeration_type": "NPI-2", "state": state, "limit": limit, "skip": skip}
+    params: Dict[str, Any] = {
+        "version": "2.1",
+        "enumeration_type": "NPI-2",
+        "state": state,
+        "limit": limit,
+        "skip": skip,
+    }
     if taxonomy:
         params["taxonomy_description"] = taxonomy
 
@@ -150,9 +160,17 @@ def _get_forgedb(db_path=None):
 def _fetch_healthcare_businesses(db, state: str, ph: str) -> List[Dict]:
     """Fetch healthcare businesses needing NPI enrichment for a state."""
     healthcare_keywords = [
-        '%dent%', '%chiropract%', '%veterinar%', '%doctor%',
-        '%medical%', '%health%', '%clinic%', '%therap%',
-        '%optom%', '%pharm%', '%physical_therap%',
+        "%dent%",
+        "%chiropract%",
+        "%veterinar%",
+        "%doctor%",
+        "%medical%",
+        "%health%",
+        "%clinic%",
+        "%therap%",
+        "%optom%",
+        "%pharm%",
+        "%physical_therap%",
     ]
 
     if db.is_postgres:
@@ -186,19 +204,25 @@ def _lookup_npi(name: str, state: str) -> Optional[Dict]:
     Returns the parsed JSON response or None on failure.
     """
     try:
-        resp = httpx.get(NPI_API_URL, params={
-            "version": "2.1",
-            "enumeration_type": "NPI-2",
-            "organization_name": name,
-            "state": state,
-            "limit": 5,
-        }, timeout=15.0)
+        resp = httpx.get(
+            NPI_API_URL,
+            params={
+                "version": "2.1",
+                "enumeration_type": "NPI-2",
+                "organization_name": name,
+                "state": state,
+                "limit": 5,
+            },
+            timeout=15.0,
+        )
         return resp.json()
     except Exception:
         return None
 
 
-def _match_npi_results(results: List[Dict], phone: Optional[str], name: str, stats: Dict[str, int]) -> tuple:
+def _match_npi_results(
+    results: List[Dict], phone: Optional[str], name: str, stats: Dict[str, int]
+) -> tuple:
     """Match NPI API results against a business by phone or name.
 
     Returns (matched_npi, matched_industry) or (None, None).
@@ -234,7 +258,14 @@ def _match_npi_results(results: List[Dict], phone: Optional[str], name: str, sta
     return None, None
 
 
-def _write_npi_match(db, biz_id: str, matched_npi: str, matched_industry: Optional[str], stats: Dict[str, int], ph: str) -> None:
+def _write_npi_match(
+    db,
+    biz_id: str,
+    matched_npi: str,
+    matched_industry: Optional[str],
+    stats: Dict[str, int],
+    ph: str,
+) -> None:
     """Write matched NPI data to the database."""
     try:
         now_expr = "NOW()" if db.is_postgres else "datetime('now')"
@@ -266,8 +297,13 @@ def import_npi_for_state(
     ph = "%s" if db.is_postgres else "?"
 
     stats = {
-        "our_healthcare_businesses": 0, "npi_lookups": 0, "phone_matches": 0,
-        "name_matches": 0, "npi_written": 0, "industry_written": 0, "errors": 0,
+        "our_healthcare_businesses": 0,
+        "npi_lookups": 0,
+        "phone_matches": 0,
+        "name_matches": 0,
+        "npi_written": 0,
+        "industry_written": 0,
+        "errors": 0,
     }
 
     businesses = _fetch_healthcare_businesses(db, state, ph)
@@ -306,11 +342,56 @@ def import_npi_all_states(
     """Import NPI data for all states."""
     if states is None:
         states = [
-            "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+            "AL",
+            "AK",
+            "AZ",
+            "AR",
+            "CA",
+            "CO",
+            "CT",
+            "DE",
+            "FL",
+            "GA",
+            "HI",
+            "ID",
+            "IL",
+            "IN",
+            "IA",
+            "KS",
+            "KY",
+            "LA",
+            "ME",
+            "MD",
+            "MA",
+            "MI",
+            "MN",
+            "MS",
+            "MO",
+            "MT",
+            "NE",
+            "NV",
+            "NH",
+            "NJ",
+            "NM",
+            "NY",
+            "NC",
+            "ND",
+            "OH",
+            "OK",
+            "OR",
+            "PA",
+            "RI",
+            "SC",
+            "SD",
+            "TN",
+            "TX",
+            "UT",
+            "VT",
+            "VA",
+            "WA",
+            "WV",
+            "WI",
+            "WY",
             "DC",
         ]
 
@@ -335,6 +416,7 @@ def import_npi_all_states(
 
 if __name__ == "__main__":
     import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -344,10 +426,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Import NPI Registry data into FORGE")
     parser.add_argument("--state", type=str, help="Single state to import (e.g., CA)")
     parser.add_argument("--all-states", action="store_true", help="Import all 51 states")
-    parser.add_argument("--limit-states", type=int, default=None,
-                        help="Limit to first N states (for testing)")
-    parser.add_argument("--db-path", type=str, default=None,
-                        help="SQLite database path (default: use PostgreSQL from env vars)")
+    parser.add_argument(
+        "--limit-states", type=int, default=None, help="Limit to first N states (for testing)"
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default=None,
+        help="SQLite database path (default: use PostgreSQL from env vars)",
+    )
     args = parser.parse_args()
 
     if args.state:
@@ -356,17 +443,35 @@ if __name__ == "__main__":
         states = None
         if args.limit_states:
             all_states = [
-                "CA", "TX", "FL", "NY", "PA", "IL", "OH", "GA", "NC", "MI",
-                "NJ", "VA", "WA", "AZ", "MA", "TN", "IN", "MO", "MD", "WI",
+                "CA",
+                "TX",
+                "FL",
+                "NY",
+                "PA",
+                "IL",
+                "OH",
+                "GA",
+                "NC",
+                "MI",
+                "NJ",
+                "VA",
+                "WA",
+                "AZ",
+                "MA",
+                "TN",
+                "IN",
+                "MO",
+                "MD",
+                "WI",
             ]
-            states = all_states[:args.limit_states]
+            states = all_states[: args.limit_states]
         stats = import_npi_all_states(states, db_path=args.db_path)
     else:
         print("Specify --state CA, --all-states, or --limit-states 5")
         exit(1)
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("NPI REGISTRY IMPORT RESULTS")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     for k, v in stats.items():
         print(f"  {k}: {v:,}")

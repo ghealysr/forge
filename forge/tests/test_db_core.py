@@ -1,4 +1,5 @@
 """Tests for ForgeDB core functionality."""
+
 import uuid
 
 import pytest
@@ -53,17 +54,18 @@ class TestUpsert:
 
     def test_upsert_coalesce_does_not_overwrite(self, sqlite_db):
         """COALESCE: existing non-null values should not be overwritten."""
-        bid = sqlite_db.upsert_business({"name": "Original", "state": "FL", "email": "first@test.com"})
-        sqlite_db.upsert_business({"id": bid, "name": "New Name", "state": "TX", "email": "second@test.com"})
+        bid = sqlite_db.upsert_business(
+            {"name": "Original", "state": "FL", "email": "first@test.com"}
+        )
+        sqlite_db.upsert_business(
+            {"id": bid, "name": "New Name", "state": "TX", "email": "second@test.com"}
+        )
         record = sqlite_db.get_business(bid)
         # email was already set, COALESCE should preserve it
         assert record["email"] == "first@test.com"
 
     def test_upsert_batch(self, sqlite_db):
-        records = [
-            {"name": f"Biz {i}", "city": "Tampa", "state": "FL"}
-            for i in range(10)
-        ]
+        records = [{"name": f"Biz {i}", "city": "Tampa", "state": "FL"} for i in range(10)]
         result = sqlite_db.upsert_batch(records)
         assert result["inserted"] == 10
         stats = sqlite_db.get_stats()
@@ -224,6 +226,7 @@ class TestExport:
         sqlite_db.export_csv(out)
         assert os.path.exists(out)
         import csv as csv_mod
+
         with open(out) as f:
             reader = csv_mod.DictReader(f)
             rows = list(reader)
@@ -342,7 +345,9 @@ class TestFetchDicts:
 
 class TestFetchForEnrichment:
     def test_fetch_email_mode(self, sqlite_db):
-        sqlite_db.upsert_business({"name": "Has Website", "state": "FL", "website_url": "https://example.com"})
+        sqlite_db.upsert_business(
+            {"name": "Has Website", "state": "FL", "website_url": "https://example.com"}
+        )
         sqlite_db.upsert_business({"name": "No Website", "state": "FL"})
         results = sqlite_db.fetch_for_enrichment(mode="email", limit=10)
         # Should include Has Website (has website, no email)
@@ -350,7 +355,9 @@ class TestFetchForEnrichment:
 
     def test_fetch_with_limit(self, sqlite_db):
         for i in range(10):
-            sqlite_db.upsert_business({"name": f"Biz{i}", "state": "FL", "website_url": "https://example.com"})
+            sqlite_db.upsert_business(
+                {"name": f"Biz{i}", "state": "FL", "website_url": "https://example.com"}
+            )
         results = sqlite_db.fetch_for_enrichment(mode="email", limit=3)
         assert len(results) == 3
 
@@ -360,6 +367,7 @@ class TestPrepareValue:
         val = sqlite_db._prepare_value_for_write("tech_stack", ["React", "Node.js"])
         assert isinstance(val, str)
         import json
+
         assert json.loads(val) == ["React", "Node.js"]
 
     def test_boolean_column_returns_int_for_sqlite(self, sqlite_db):

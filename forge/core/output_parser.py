@@ -28,6 +28,7 @@ logger = logging.getLogger("forge.output_parser")
 @dataclass
 class ToolCall:
     """A parsed tool call from the model's response."""
+
     name: str
     arguments: Dict[str, Any]
     id: str = ""  # Optional tool call ID for tracking
@@ -113,11 +114,13 @@ class OutputParser:
                     except json.JSONDecodeError:
                         args = {"raw": args}
                 if name:
-                    calls.append(ToolCall(
-                        name=name,
-                        arguments=args if isinstance(args, dict) else {},
-                        id=f"call_{i}",
-                    ))
+                    calls.append(
+                        ToolCall(
+                            name=name,
+                            arguments=args if isinstance(args, dict) else {},
+                            id=f"call_{i}",
+                        )
+                    )
         return calls
 
     def _parse_json_tool_calls(self, text: str) -> List[ToolCall]:
@@ -136,7 +139,12 @@ class OutputParser:
         for obj in json_objects:
             # Try various key patterns
             name = obj.get("tool") or obj.get("name") or obj.get("function")
-            args = obj.get("arguments") or obj.get("input") or obj.get("params") or obj.get("parameters")
+            args = (
+                obj.get("arguments")
+                or obj.get("input")
+                or obj.get("params")
+                or obj.get("parameters")
+            )
 
             if name and isinstance(name, str):
                 if args is None:
@@ -146,11 +154,13 @@ class OutputParser:
                         args = json.loads(args)
                     except json.JSONDecodeError:
                         args = {"raw": args}
-                calls.append(ToolCall(
-                    name=name,
-                    arguments=args if isinstance(args, dict) else {},
-                    id=f"parsed_{len(calls)}",
-                ))
+                calls.append(
+                    ToolCall(
+                        name=name,
+                        arguments=args if isinstance(args, dict) else {},
+                        id=f"parsed_{len(calls)}",
+                    )
+                )
 
         return calls
 
@@ -168,11 +178,13 @@ class OutputParser:
                     name = obj.get("tool") or obj.get("name") or obj.get("function")
                     args = obj.get("arguments") or obj.get("input") or obj.get("params")
                     if name:
-                        calls.append(ToolCall(
-                            name=name,
-                            arguments=args if isinstance(args, dict) else {},
-                            id=f"codeblock_{len(calls)}",
-                        ))
+                        calls.append(
+                            ToolCall(
+                                name=name,
+                                arguments=args if isinstance(args, dict) else {},
+                                id=f"codeblock_{len(calls)}",
+                            )
+                        )
             except json.JSONDecodeError:
                 continue
 
@@ -188,7 +200,7 @@ class OutputParser:
         objects = []
         i = 0
         while i < len(text):
-            if text[i] == '{':
+            if text[i] == "{":
                 # Try to find matching closing brace
                 depth = 0
                 start = i
@@ -200,7 +212,7 @@ class OutputParser:
                     if escape_next:
                         escape_next = False
                         continue
-                    if char == '\\':
+                    if char == "\\":
                         escape_next = True
                         continue
                     if char == '"' and not escape_next:
@@ -208,12 +220,12 @@ class OutputParser:
                         continue
                     if in_string:
                         continue
-                    if char == '{':
+                    if char == "{":
                         depth += 1
-                    elif char == '}':
+                    elif char == "}":
                         depth -= 1
                         if depth == 0:
-                            candidate = text[start:j+1]
+                            candidate = text[start : j + 1]
                             try:
                                 obj = json.loads(candidate)
                                 if isinstance(obj, dict):

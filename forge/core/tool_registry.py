@@ -23,6 +23,7 @@ logger = logging.getLogger("forge.tool_registry")
 @dataclass
 class ToolDefinition:
     """Schema for a tool that the model can call."""
+
     name: str
     description: str
     parameters: Dict[str, Any]  # JSON Schema for parameters
@@ -167,14 +168,16 @@ class ToolRegistry:
         """
         definitions = []
         for tool in self._tools.values():
-            definitions.append({
-                "type": "function",
-                "function": {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": tool.parameters,
-                },
-            })
+            definitions.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": tool.parameters,
+                    },
+                }
+            )
         return definitions
 
     def list_tools(self) -> List[str]:

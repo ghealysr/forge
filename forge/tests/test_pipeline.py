@@ -13,6 +13,7 @@ from forge.enrichment.pipeline import (
 # Mock objects
 # ---------------------------------------------------------------------------
 
+
 class MockDB:
     """Mock database pool that records calls."""
 
@@ -86,7 +87,10 @@ class MockScraper:
 class MockOllama:
     """Mock Ollama adapter for AI enrichment."""
 
-    def __init__(self, response='{"summary": "Great business", "industry": "dentist", "health_score": 75, "pain_points": ["no website"]}'):
+    def __init__(
+        self,
+        response='{"summary": "Great business", "industry": "dentist", "health_score": 75, "pain_points": ["no website"]}',
+    ):
         self._response = response
 
     def generate_simple(self, prompt, timeout=None):
@@ -96,6 +100,7 @@ class MockOllama:
 # ---------------------------------------------------------------------------
 # Tests: EnrichmentStats
 # ---------------------------------------------------------------------------
+
 
 class TestEnrichmentStats:
     def test_summary_returns_string(self):
@@ -153,6 +158,7 @@ class TestEnrichmentStats:
 # Tests: EnrichmentPipeline construction
 # ---------------------------------------------------------------------------
 
+
 class TestPipelineConstruction:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
     def test_basic_construction(self, mock_scraper_cls):
@@ -167,6 +173,7 @@ class TestPipelineConstruction:
 # ---------------------------------------------------------------------------
 # Tests: run() with mode="email"
 # ---------------------------------------------------------------------------
+
 
 class TestRunEmailMode:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
@@ -192,6 +199,7 @@ class TestRunEmailMode:
 # ---------------------------------------------------------------------------
 # Tests: run() with mode="ai"
 # ---------------------------------------------------------------------------
+
 
 class TestRunAIMode:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
@@ -247,6 +255,7 @@ class TestRunAIMode:
 # Tests: stop()
 # ---------------------------------------------------------------------------
 
+
 class TestPipelineStop:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
     def test_stop_sets_running_false(self, mock_scraper_cls):
@@ -261,6 +270,7 @@ class TestPipelineStop:
 # Tests: _write_enrichment
 # ---------------------------------------------------------------------------
 
+
 class TestWriteEnrichment:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
     def test_respects_allowed_fields(self, mock_scraper_cls):
@@ -269,12 +279,16 @@ class TestWriteEnrichment:
         pipeline = EnrichmentPipeline(db_pool=db)
 
         # Try to write both allowed and disallowed fields
-        pipeline._write_enrichment("uuid-1", {
-            "email": "test@example.com",
-            "industry": "dentist",
-            "DANGEROUS_FIELD": "should be filtered",
-            "sql_injection": "DROP TABLE",
-        }, source="test")
+        pipeline._write_enrichment(
+            "uuid-1",
+            {
+                "email": "test@example.com",
+                "industry": "dentist",
+                "DANGEROUS_FIELD": "should be filtered",
+                "sql_injection": "DROP TABLE",
+            },
+            source="test",
+        )
 
         assert len(db.written) == 1
         _, updates, _ = db.written[0]
@@ -306,6 +320,7 @@ class TestWriteEnrichment:
 # Tests: empty business list
 # ---------------------------------------------------------------------------
 
+
 class TestEmptyBusinessList:
     @patch("forge.enrichment.pipeline.AsyncWebScraper")
     def test_handles_empty_list_gracefully(self, mock_scraper_cls):
@@ -322,6 +337,7 @@ class TestEmptyBusinessList:
 # ---------------------------------------------------------------------------
 # Tests: INDUSTRY_WHITELIST
 # ---------------------------------------------------------------------------
+
 
 class TestIndustryWhitelist:
     def test_has_20_categories(self):

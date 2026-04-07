@@ -65,21 +65,39 @@ def _c(text: str, code: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _colors_enabled() else text
 
 
-def green(text: str) -> str: return _c(text, "32")
-def yellow(text: str) -> str: return _c(text, "33")
-def red(text: str) -> str: return _c(text, "31")
-def bold(text: str) -> str: return _c(text, "1")
-def dim(text: str) -> str: return _c(text, "2")
-def cyan(text: str) -> str: return _c(text, "36")
+def green(text: str) -> str:
+    return _c(text, "32")
+
+
+def yellow(text: str) -> str:
+    return _c(text, "33")
+
+
+def red(text: str) -> str:
+    return _c(text, "31")
+
+
+def bold(text: str) -> str:
+    return _c(text, "1")
+
+
+def dim(text: str) -> str:
+    return _c(text, "2")
+
+
+def cyan(text: str) -> str:
+    return _c(text, "36")
 
 
 # ---------------------------------------------------------------------------
 # Subcommand: enrich
 # ---------------------------------------------------------------------------
 
+
 def cmd_enrich(args: argparse.Namespace) -> None:
     """Run the enrichment pipeline."""
     from forge.cli_enrich import run_csv_enrich, run_database_enrich
+
     logger = setup_logging(verbose=args.verbose, quiet=args.quiet)
     if args.file:
         run_csv_enrich(args, logger)
@@ -91,11 +109,15 @@ def cmd_enrich(args: argparse.Namespace) -> None:
 # Subcommand: import
 # ---------------------------------------------------------------------------
 
+
 def _validate_import_file(file_path: str) -> Path:
     """Validate the import file exists and has data. Returns Path or dies."""
     input_path = Path(file_path)
     if not input_path.exists():
-        die(f"File not found: {file_path}", hint=f"Check the path and try again. Current directory: {os.getcwd()}")
+        die(
+            f"File not found: {file_path}",
+            hint=f"Check the path and try again. Current directory: {os.getcwd()}",
+        )
     if input_path.stat().st_size == 0:
         die("File is empty.", hint="Provide a CSV with at least a header row and one data row.")
     try:
@@ -132,7 +154,9 @@ def _print_import_results(result: Any) -> None:
         info(f"    Updated:  {updated_count:,}")
     if skipped_count:
         info(f"    Skipped:  {skipped_count:,}")
-    info(f"\nRun {bold('forge enrich')} to start enrichment, or {bold('forge status')} to check database stats.")
+    info(
+        f"\nRun {bold('forge enrich')} to start enrichment, or {bold('forge status')} to check database stats."
+    )
 
 
 def cmd_import(args: argparse.Namespace) -> None:
@@ -172,10 +196,12 @@ def cmd_import(args: argparse.Namespace) -> None:
 # Subcommand: export
 # ---------------------------------------------------------------------------
 
+
 def _get_export_db():
     """Load config and return (db, db_config) or die."""
     from forge.config import ForgeConfig
     from forge.db import ForgeDB
+
     config = ForgeConfig.load()
     db_config = config.to_db_config()
     if not db_config:
@@ -183,8 +209,10 @@ def _get_export_db():
         if os.path.exists(default_path):
             db_config = {"db_path": default_path}
         else:
-            die("No database configured and no default database found.",
-                hint="Run 'forge enrich --file data.csv' or 'forge import --file data.csv' first.")
+            die(
+                "No database configured and no default database found.",
+                hint="Run 'forge enrich --file data.csv' or 'forge import --file data.csv' first.",
+            )
     try:
         return ForgeDB.from_config(db_config)
     except Exception as e:  # CLI boundary: convert to user-friendly error and exit
@@ -201,7 +229,11 @@ def cmd_export(args: argparse.Namespace) -> None:
 
     info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Export")
     try:
-        result = db.export_json(output_path, where=filter_name) if output_format == "json" else db.export_csv(output_path, where=filter_name)
+        result = (
+            db.export_json(output_path, where=filter_name)
+            if output_format == "json"
+            else db.export_csv(output_path, where=filter_name)
+        )
         exported = result.get("row_count", 0) if isinstance(result, dict) else int(result)
     except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Export failed: {e}")
@@ -221,9 +253,11 @@ def cmd_export(args: argparse.Namespace) -> None:
 # Subcommand: status
 # ---------------------------------------------------------------------------
 
+
 def _print_status_table(stats: dict, db_config: dict) -> None:
     """Print the enrichment stats table."""
     total = stats.get("total_records", 0)
+
     def pct(n: int) -> str:
         return f"{n / total * 100:.1f}%" if total else "0%"
 
@@ -253,7 +287,9 @@ def _print_status_table(stats: dict, db_config: dict) -> None:
     info("")
 
     if stats.get("with_email", 0) == 0 and stats.get("with_website", 0) > 0:
-        info(f"  {yellow('Tip:')} Run {bold('forge enrich --mode email')} to extract emails from websites.")
+        info(
+            f"  {yellow('Tip:')} Run {bold('forge enrich --mode email')} to extract emails from websites."
+        )
     if stats.get("with_ai_summary", 0) == 0 and total > 0:
         info(f"  {yellow('Tip:')} Run {bold('forge enrich --mode ai')} for AI-powered enrichment.")
 
@@ -271,8 +307,10 @@ def cmd_status(args: argparse.Namespace) -> None:
         if os.path.exists(default_path):
             db_config = {"db_path": default_path}
         else:
-            die("No database configured and no default database found.",
-                hint="Run 'forge enrich --file data.csv' or 'forge import --file data.csv' first.")
+            die(
+                "No database configured and no default database found.",
+                hint="Run 'forge enrich --file data.csv' or 'forge import --file data.csv' first.",
+            )
 
     try:
         db = ForgeDB.from_config(db_config)
@@ -295,6 +333,7 @@ def cmd_status(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 # Subcommand: config
 # ---------------------------------------------------------------------------
+
 
 def cmd_config(args: argparse.Namespace) -> None:
     """Show or set configuration values."""
@@ -324,7 +363,9 @@ def _print_config_header(config: Any) -> None:
         db_display = db_config.get("db_path", db_config.get("db_host", "unknown"))
         info(f"  Database:    {db_type} ({db_display})")
     else:
-        info(f"  Database:    SQLite (default: {os.path.join(os.path.expanduser('~'), '.forge', 'forge.db')})")
+        info(
+            f"  Database:    SQLite (default: {os.path.join(os.path.expanduser('~'), '.forge', 'forge.db')})"
+        )
 
 
 def _print_adapter_info(config: Any) -> None:
@@ -361,7 +402,11 @@ def _config_show(config: Any) -> None:
         info("  All settings:")
         for key, value in sorted(all_config.items()):
             if any(s in key.lower() for s in ("key", "password", "secret", "token")):
-                display = value[:4] + "..." + value[-4:] if isinstance(value, str) and len(value) > 8 else "***"
+                display = (
+                    value[:4] + "..." + value[-4:]
+                    if isinstance(value, str) and len(value) > 8
+                    else "***"
+                )
             else:
                 display = str(value)
             info(f"    {key:<28} {display}")
@@ -374,6 +419,7 @@ def _config_set(config: Any, key: str, value: str) -> None:
 
     try:
         from forge.config import cli_config_set
+
         cli_config_set(key, value)
     except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Failed to set config value: {e}")
@@ -383,9 +429,11 @@ def _config_set(config: Any, key: str, value: str) -> None:
 # Subcommand: discover (placeholder)
 # ---------------------------------------------------------------------------
 
+
 def _run_discovery(args: argparse.Namespace) -> list:
     """Execute the Overture search. Returns results list."""
     from forge.discovery.overture import OvertureDiscovery
+
     disco = OvertureDiscovery()
     results = disco.search(
         zip_code=args.zip,
@@ -426,6 +474,7 @@ def _import_discovered(results: list, logger: Any) -> None:
     info("  --enrich flag set: importing discovered businesses for enrichment...")
     from forge.config import ForgeConfig
     from forge.db import ForgeDB
+
     config = ForgeConfig.load()
     db_config = config.to_db_config()
     if not db_config:
@@ -442,7 +491,9 @@ def _import_discovered(results: list, logger: Any) -> None:
         except Exception as e:  # Non-critical: skip failed record, continue importing
             logger.debug("Upsert failed for %s: %s", record.get("name", "?"), e)
     db.close()
-    info(f"  {green('Imported')} {imported:,} businesses. Run {bold('forge enrich')} to enrich them.")
+    info(
+        f"  {green('Imported')} {imported:,} businesses. Run {bold('forge enrich')} to enrich them."
+    )
 
 
 def cmd_discover(args: argparse.Namespace) -> None:
@@ -473,6 +524,7 @@ def cmd_discover(args: argparse.Namespace) -> None:
 # Subcommand: dashboard (placeholder)
 # ---------------------------------------------------------------------------
 
+
 def cmd_dashboard(args: argparse.Namespace) -> None:
     """Start the FORGE web dashboard."""
     setup_logging(verbose=args.verbose, quiet=args.quiet)
@@ -487,6 +539,7 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
         import uvicorn
 
         from forge.dashboard.app import app
+
         uvicorn.run(app, host="127.0.0.1", port=port)
     except ImportError as e:
         die(
@@ -501,6 +554,7 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
 # Subcommand: mcp-server (placeholder)
 # ---------------------------------------------------------------------------
 
+
 def cmd_mcp_server(args: argparse.Namespace) -> None:
     """Start the FORGE MCP server for AI assistant integration."""
     # MCP server uses stdin/stdout for JSON-RPC — logging goes to stderr
@@ -512,6 +566,7 @@ def cmd_mcp_server(args: argparse.Namespace) -> None:
     )
 
     from forge.mcp_server import run_server
+
     run_server()
 
 
@@ -531,16 +586,25 @@ BANNER = r"""
 def build_parser() -> argparse.ArgumentParser:
     """Build the complete argument parser with all subcommands."""
     from forge.cli_parsers import build_parser as _build
-    return _build({
-        "enrich": cmd_enrich, "import": cmd_import, "export": cmd_export,
-        "discover": cmd_discover, "status": cmd_status, "config": cmd_config,
-        "dashboard": cmd_dashboard, "mcp_server": cmd_mcp_server,
-    })
+
+    return _build(
+        {
+            "enrich": cmd_enrich,
+            "import": cmd_import,
+            "export": cmd_export,
+            "discover": cmd_discover,
+            "status": cmd_status,
+            "config": cmd_config,
+            "dashboard": cmd_dashboard,
+            "mcp_server": cmd_mcp_server,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def main(argv: Optional[List[str]] = None) -> None:
     """

@@ -13,6 +13,7 @@ from forge.tools.database import (
 # Mock ForgeDB for testing
 # ---------------------------------------------------------------------------
 
+
 class MockForgeDB:
     """In-memory mock of ForgeDB for testing database tools."""
 
@@ -46,6 +47,7 @@ class MockForgeDB:
 # Tests: DatabasePool
 # ---------------------------------------------------------------------------
 
+
 class TestDatabasePool:
     def test_construction_with_forgedb(self):
         db = MockForgeDB()
@@ -74,6 +76,7 @@ class TestDatabasePool:
 # ---------------------------------------------------------------------------
 # Tests: FetchUnenrichedTool
 # ---------------------------------------------------------------------------
+
 
 class TestFetchUnenrichedTool:
     def test_properties(self):
@@ -141,6 +144,7 @@ class TestFetchUnenrichedTool:
 # Tests: WriteEnrichmentTool
 # ---------------------------------------------------------------------------
 
+
 class TestWriteEnrichmentTool:
     def test_properties(self):
         pool = DatabasePool(db=MockForgeDB())
@@ -154,10 +158,12 @@ class TestWriteEnrichmentTool:
         pool = DatabasePool(db=db)
         tool = WriteEnrichmentTool(pool)
 
-        result = tool.execute({
-            "business_id": "uuid-1",
-            "updates": {"email": "info@dental.com", "industry": "dentist"},
-        })
+        result = tool.execute(
+            {
+                "business_id": "uuid-1",
+                "updates": {"email": "info@dental.com", "industry": "dentist"},
+            }
+        )
 
         assert result["status"] == "updated"
         assert "email" in result["fields_updated"]
@@ -175,10 +181,12 @@ class TestWriteEnrichmentTool:
         pool = DatabasePool(db=db)
         tool = WriteEnrichmentTool(pool)
 
-        result = tool.execute({
-            "business_id": "uuid-1",
-            "updates": {"MALICIOUS_FIELD": "DROP TABLE", "email": "ok@test.com"},
-        })
+        result = tool.execute(
+            {
+                "business_id": "uuid-1",
+                "updates": {"MALICIOUS_FIELD": "DROP TABLE", "email": "ok@test.com"},
+            }
+        )
 
         assert result["status"] == "updated"
         assert "email" in result["fields_updated"]
@@ -188,10 +196,12 @@ class TestWriteEnrichmentTool:
         pool = DatabasePool(db=MockForgeDB())
         tool = WriteEnrichmentTool(pool)
 
-        result = tool.execute({
-            "business_id": "uuid-1",
-            "updates": {"bad_field": "value", "another_bad": "value"},
-        })
+        result = tool.execute(
+            {
+                "business_id": "uuid-1",
+                "updates": {"bad_field": "value", "another_bad": "value"},
+            }
+        )
         assert result["status"] == "no_valid_fields"
 
     def test_execute_handles_error(self):
@@ -200,16 +210,19 @@ class TestWriteEnrichmentTool:
         pool = DatabasePool(db=db)
         tool = WriteEnrichmentTool(pool)
 
-        result = tool.execute({
-            "business_id": "uuid-1",
-            "updates": {"email": "test@test.com"},
-        })
+        result = tool.execute(
+            {
+                "business_id": "uuid-1",
+                "updates": {"email": "test@test.com"},
+            }
+        )
         assert "error" in result
 
 
 # ---------------------------------------------------------------------------
 # Tests: BatchWriteEnrichmentTool
 # ---------------------------------------------------------------------------
+
 
 class TestBatchWriteEnrichmentTool:
     def test_properties(self):
@@ -231,10 +244,14 @@ class TestBatchWriteEnrichmentTool:
         pool = DatabasePool(db=db)
         tool = BatchWriteEnrichmentTool(pool)
 
-        result = tool.execute({"results": [
-            {"business_id": "uuid-1", "updates": {"email": "a@b.com"}},
-            {"business_id": "uuid-2", "updates": {"industry": "dentist"}},
-        ]})
+        result = tool.execute(
+            {
+                "results": [
+                    {"business_id": "uuid-1", "updates": {"email": "a@b.com"}},
+                    {"business_id": "uuid-2", "updates": {"industry": "dentist"}},
+                ]
+            }
+        )
 
         assert result["status"] == "completed"
         assert result["updated"] == 2
@@ -255,11 +272,15 @@ class TestBatchWriteEnrichmentTool:
         pool = DatabasePool(db=db)
         tool = BatchWriteEnrichmentTool(pool)
 
-        result = tool.execute({"results": [
-            {"business_id": "uuid-1", "updates": {"email": "a@b.com"}},
-            {"business_id": "uuid-2", "updates": {"email": "c@d.com"}},
-            {"business_id": "uuid-3", "updates": {"email": "e@f.com"}},
-        ]})
+        result = tool.execute(
+            {
+                "results": [
+                    {"business_id": "uuid-1", "updates": {"email": "a@b.com"}},
+                    {"business_id": "uuid-2", "updates": {"email": "c@d.com"}},
+                    {"business_id": "uuid-3", "updates": {"email": "e@f.com"}},
+                ]
+            }
+        )
 
         assert result["status"] == "completed"
         assert result["errors"] >= 1

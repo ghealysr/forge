@@ -50,16 +50,33 @@ logger = logging.getLogger("forge.enrichment")
 # ── Industry whitelist (20 categories) ───────────────────────────────────────
 
 INDUSTRY_WHITELIST = [
-    "restaurant", "salon", "real-estate", "dentist", "gym",
-    "lawyer", "landscaping", "barber", "cleaning-service", "chiropractor",
-    "veterinarian", "auto-repair", "tattoo-shop", "accountant", "plumber",
-    "photographer", "dog-groomer", "electrician", "food-truck", "personal-trainer",
+    "restaurant",
+    "salon",
+    "real-estate",
+    "dentist",
+    "gym",
+    "lawyer",
+    "landscaping",
+    "barber",
+    "cleaning-service",
+    "chiropractor",
+    "veterinarian",
+    "auto-repair",
+    "tattoo-shop",
+    "accountant",
+    "plumber",
+    "photographer",
+    "dog-groomer",
+    "electrician",
+    "food-truck",
+    "personal-trainer",
 ]
 
 
 @dataclass
 class EnrichmentStats:
     """Tracks enrichment progress across both tracks."""
+
     total_processed: int = 0
     emails_found: int = 0
     tech_stacks_found: int = 0
@@ -92,7 +109,7 @@ class EnrichmentStats:
             f"LLMFailures: {self.llm_failures:,} | "
             f"Skipped(resume): {self.skipped_resume:,} | "
             f"Rate: {self.rate_per_hour():.0f}/hr | "
-            f"Elapsed: {elapsed/60:.1f}m"
+            f"Elapsed: {elapsed / 60:.1f}m"
         )
 
 
@@ -123,18 +140,27 @@ class EnrichmentPipeline:
         self._running = False
         self._lock = threading.Lock()
 
-    def _start_track_threads(self, mode: str, state_filter: Optional[str],
-                             max_records: Optional[int], resume: bool) -> List[threading.Thread]:
+    def _start_track_threads(
+        self, mode: str, state_filter: Optional[str], max_records: Optional[int], resume: bool
+    ) -> List[threading.Thread]:
         """Start enrichment track threads based on mode. Returns thread list."""
         threads = []
         if mode in ("email", "both"):
-            t = threading.Thread(target=self._run_email_extraction_thread, args=(state_filter, max_records, resume),
-                                 name="email-extractor", daemon=True)
+            t = threading.Thread(
+                target=self._run_email_extraction_thread,
+                args=(state_filter, max_records, resume),
+                name="email-extractor",
+                daemon=True,
+            )
             threads.append(t)
             t.start()
         if mode in ("ai", "both"):
-            t = threading.Thread(target=self._run_ai_enrichment, args=(state_filter, max_records, resume),
-                                 name="ai-enricher", daemon=True)
+            t = threading.Thread(
+                target=self._run_ai_enrichment,
+                args=(state_filter, max_records, resume),
+                name="ai-enricher",
+                daemon=True,
+            )
             threads.append(t)
             t.start()
         return threads
@@ -153,8 +179,14 @@ class EnrichmentPipeline:
         """
         self._running = True
         self._stats = EnrichmentStats(start_time=time.time())
-        logger.info("Enrichment pipeline starting — mode=%s, state=%s, max=%s, workers=%d, resume=%s",
-                     mode, state_filter or "all", max_records or "unlimited", self._web_workers, resume)
+        logger.info(
+            "Enrichment pipeline starting — mode=%s, state=%s, max=%s, workers=%d, resume=%s",
+            mode,
+            state_filter or "all",
+            max_records or "unlimited",
+            self._web_workers,
+            resume,
+        )
 
         threads = self._start_track_threads(mode, state_filter, max_records, resume)
         for t in threads:
@@ -177,9 +209,7 @@ class EnrichmentPipeline:
         """Thread wrapper for async email extraction."""
         loop = asyncio.new_event_loop()
         try:
-            loop.run_until_complete(
-                self._run_email_extraction(state_filter, max_records, resume)
-            )
+            loop.run_until_complete(self._run_email_extraction(state_filter, max_records, resume))
         finally:
             loop.run_until_complete(self._scraper.close())
             loop.close()
@@ -321,7 +351,8 @@ class EnrichmentPipeline:
 
             results = await self._scraper.scrape_batch(urls)
             enrichments, tracking_ids, processed = self._collect_scrape_results(
-                results, url_biz_map, processed, max_records)
+                results, url_biz_map, processed, max_records
+            )
             self._flush_batch(enrichments, tracking_ids)
 
             with self._lock:
@@ -339,7 +370,9 @@ class EnrichmentPipeline:
         Use Gemma 26B-A4B to generate AI summaries, classify industries,
         score health, and identify pain points.
         """
-        logger.info("AI enrichment track starting (batch_size=%d, model=gemma4:26b)", self._batch_size)
+        logger.info(
+            "AI enrichment track starting (batch_size=%d, model=gemma4:26b)", self._batch_size
+        )
         processed = 0
 
         while self._running:
@@ -404,6 +437,7 @@ class EnrichmentPipeline:
     def _enrich_single_ai(self, business: dict) -> None:
         """Enrich a single business with Gemma 26B-A4B."""
         from forge.enrichment.prompts import build_single_enrichment_prompt
+
         prompt = build_single_enrichment_prompt(business)
         response = self._ollama.generate_simple(prompt, timeout=90.0)
         logger.debug("Gemma raw output for %s: %s", business.get("name", "?"), response[:200])
@@ -435,9 +469,18 @@ class EnrichmentPipeline:
 
     # Whitelist of fields that can be used in WHERE clauses
     _QUERYABLE_FIELDS = {
-        "email", "industry", "ai_summary", "health_score", "sub_industry",
-        "website_url", "phone", "tech_stack", "ssl_valid", "cms_detected",
-        "site_speed_ms", "pain_points",
+        "email",
+        "industry",
+        "ai_summary",
+        "health_score",
+        "sub_industry",
+        "website_url",
+        "phone",
+        "tech_stack",
+        "ssl_valid",
+        "cms_detected",
+        "site_speed_ms",
+        "pain_points",
     }
 
     def _fetch_businesses_for_scrape(
@@ -525,9 +568,18 @@ class EnrichmentPipeline:
             return
 
         ALLOWED = {
-            "email", "industry", "sub_industry", "ai_summary", "health_score",
-            "tech_stack", "ssl_valid", "cms_detected", "lead_score",
-            "site_speed_ms", "pain_points", "opportunities",
+            "email",
+            "industry",
+            "sub_industry",
+            "ai_summary",
+            "health_score",
+            "tech_stack",
+            "ssl_valid",
+            "cms_detected",
+            "lead_score",
+            "site_speed_ms",
+            "pain_points",
+            "opportunities",
         }
 
         safe_updates = {k: v for k, v in updates.items() if k in ALLOWED}
@@ -599,5 +651,7 @@ class EnrichmentPipeline:
             logger.debug("Batch tracking updated: %d records", len(business_ids))
 
         except Exception as e:  # Catch-and-reraise: log context, then propagate to flush handler
-            logger.error("update_enrichment_tracking_batch failed (%d records): %s", len(business_ids), e)
+            logger.error(
+                "update_enrichment_tracking_batch failed (%d records): %s", len(business_ids), e
+            )
             raise

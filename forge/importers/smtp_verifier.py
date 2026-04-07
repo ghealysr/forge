@@ -36,6 +36,7 @@ logger = logging.getLogger("forge.importers.smtp_verifier")
 # Configuration
 # ---------------------------------------------------------------------------
 
+
 def _get_forgedb(db_path=None):
     """Create a ForgeDB instance from db_path (SQLite) or env vars (PostgreSQL)."""
     from forge.db import ForgeDB
@@ -61,6 +62,7 @@ def _get_forgedb(db_path=None):
     db = ForgeDB.from_config(db_config)
     db.ensure_schema()
     return db
+
 
 CANDIDATE_PREFIXES = ["info", "contact", "hello", "office", "sales"]
 
@@ -105,11 +107,26 @@ def _rate_limit() -> None:
 # ---------------------------------------------------------------------------
 
 _SKIP_DOMAINS = {
-    "facebook.com", "fb.com", "instagram.com", "twitter.com", "x.com",
-    "linkedin.com", "youtube.com", "tiktok.com", "yelp.com",
-    "google.com", "gmail.com", "yahoo.com", "outlook.com",
-    "wix.com", "squarespace.com", "wordpress.com", "godaddy.com",
-    "blogspot.com", "tumblr.com", "pinterest.com",
+    "facebook.com",
+    "fb.com",
+    "instagram.com",
+    "twitter.com",
+    "x.com",
+    "linkedin.com",
+    "youtube.com",
+    "tiktok.com",
+    "yelp.com",
+    "google.com",
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "wix.com",
+    "squarespace.com",
+    "wordpress.com",
+    "godaddy.com",
+    "blogspot.com",
+    "tumblr.com",
+    "pinterest.com",
 }
 
 
@@ -150,6 +167,7 @@ def extract_domain(website_url: str) -> Optional[str]:
 # MX resolution
 # ---------------------------------------------------------------------------
 
+
 def get_mx_hosts(domain: str) -> Optional[List[str]]:
     """
     Resolve MX records for a domain. Returns sorted list of MX hostnames
@@ -168,9 +186,13 @@ def get_mx_hosts(domain: str) -> Optional[List[str]]:
         mx_hosts = [str(r.exchange).rstrip(".") for r in records]  # type: ignore[attr-defined]
         if not mx_hosts:
             mx_hosts = None
-    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN,
-            dns.resolver.NoNameservers, dns.resolver.Timeout,
-            dns.exception.DNSException):
+    except (
+        dns.resolver.NoAnswer,
+        dns.resolver.NXDOMAIN,
+        dns.resolver.NoNameservers,
+        dns.resolver.Timeout,
+        dns.exception.DNSException,
+    ):
         mx_hosts = None
 
     with _mx_cache_lock:
@@ -182,6 +204,7 @@ def get_mx_hosts(domain: str) -> Optional[List[str]]:
 # ---------------------------------------------------------------------------
 # SMTP RCPT TO verification
 # ---------------------------------------------------------------------------
+
 
 def _smtp_check(email: str, mx_host: str) -> Optional[int]:
     """
@@ -247,6 +270,7 @@ def verify_email(email: str, mx_hosts: List[str]) -> bool:
 # Catch-all detection
 # ---------------------------------------------------------------------------
 
+
 def is_catchall_domain(domain: str, mx_hosts: List[str]) -> bool:
     """
     Detect if a domain is a catch-all (accepts any address).
@@ -285,6 +309,7 @@ def is_catchall_domain(domain: str, mx_hosts: List[str]) -> bool:
 # ---------------------------------------------------------------------------
 # Database operations
 # ---------------------------------------------------------------------------
+
 
 def fetch_batch(db, last_id: str) -> List[Tuple[str, str]]:
     """
@@ -329,6 +354,7 @@ def write_email(db, business_id: str, email: str) -> bool:
 # Checkpoint management
 # ---------------------------------------------------------------------------
 
+
 def load_checkpoint() -> str:
     """Load the last processed business ID from checkpoint file."""
     try:
@@ -350,6 +376,7 @@ def save_checkpoint(last_id: str) -> None:
 # ---------------------------------------------------------------------------
 # Worker function for ThreadPoolExecutor
 # ---------------------------------------------------------------------------
+
 
 def verify_business(business_id: str, website_url: str) -> Optional[Tuple[str, str]]:
     """
@@ -389,6 +416,7 @@ def verify_business(business_id: str, website_url: str) -> Optional[Tuple[str, s
 # Main processing loop
 # ---------------------------------------------------------------------------
 
+
 def _process_batch(
     batch: List[Tuple[str, str]],
     workers: int,
@@ -425,19 +453,28 @@ def _process_batch(
     return batch_found, batch_written
 
 
-def _report_progress(total_processed: int, total_found: int, total_written: int, start_time: float, last_id: str) -> None:
+def _report_progress(
+    total_processed: int, total_found: int, total_written: int, start_time: float, last_id: str
+) -> None:
     """Log progress statistics."""
     elapsed = time.time() - start_time
     rate = total_processed / elapsed if elapsed > 0 else 0
     logger.info(
         "Progress: %d processed | %d emails found | %d written | "
         "%.1f rec/sec | last_id=%s | MX cache=%d | catch-all cache=%d",
-        total_processed, total_found, total_written,
-        rate, last_id, len(_mx_cache), len(_catchall_cache),
+        total_processed,
+        total_found,
+        total_written,
+        rate,
+        last_id,
+        len(_mx_cache),
+        len(_catchall_cache),
     )
 
 
-def _report_final(total_processed: int, total_found: int, total_written: int, start_time: float) -> None:
+def _report_final(
+    total_processed: int, total_found: int, total_written: int, start_time: float
+) -> None:
     """Log final summary statistics."""
     elapsed = time.time() - start_time
     logger.info(
@@ -448,7 +485,9 @@ def _report_final(total_processed: int, total_found: int, total_written: int, st
         "  MX domains cached: %d\n"
         "  Catch-all domains: %d\n"
         "  Elapsed: %.1f seconds (%.1f rec/sec)",
-        total_processed, total_found, total_written,
+        total_processed,
+        total_found,
+        total_written,
         len(_mx_cache),
         sum(1 for v in _catchall_cache.values() if v),
         elapsed,
@@ -456,7 +495,9 @@ def _report_final(total_processed: int, total_found: int, total_written: int, st
     )
 
 
-def _verification_loop(db, last_id: str, limit: Optional[int], workers: int) -> Tuple[str, int, int, int]:
+def _verification_loop(
+    db, last_id: str, limit: Optional[int], workers: int
+) -> Tuple[str, int, int, int]:
     """Run the main verification loop over batches.
 
     Returns (last_id, total_processed, total_found, total_written).
@@ -499,7 +540,12 @@ def _verification_loop(db, last_id: str, limit: Optional[int], workers: int) -> 
     return last_id, total_processed, total_found, total_written
 
 
-def run(resume: bool = False, limit: Optional[int] = None, workers: int = 5, db_path: Optional[str] = None) -> None:
+def run(
+    resume: bool = False,
+    limit: Optional[int] = None,
+    workers: int = 5,
+    db_path: Optional[str] = None,
+) -> None:
     """Main entry point for SMTP email verification."""
     logging.basicConfig(
         level=logging.INFO,
@@ -522,7 +568,9 @@ def run(resume: bool = False, limit: Optional[int] = None, workers: int = 5, db_
     start_time = time.time()
 
     try:
-        last_id, total_processed, total_found, total_written = _verification_loop(db, last_id, limit, workers)
+        last_id, total_processed, total_found, total_written = _verification_loop(
+            db, last_id, limit, workers
+        )
     except KeyboardInterrupt:
         total_processed = total_found = total_written = 0
         logger.info("Interrupted by user")
@@ -536,6 +584,7 @@ def run(resume: bool = False, limit: Optional[int] = None, workers: int = 5, db_
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(

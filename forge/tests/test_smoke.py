@@ -1,4 +1,5 @@
 """Smoke tests for FORGE — verify basic functionality."""
+
 import csv
 import os
 import tempfile
@@ -11,15 +12,16 @@ def test_forge_imports():
 def test_forgedb_sqlite_crud():
     """Test basic CRUD with SQLite."""
     from forge.db import ForgeDB
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = f.name
     try:
-        db = ForgeDB.from_config({'db_path': db_path})
+        db = ForgeDB.from_config({"db_path": db_path})
         db.ensure_schema()
-        bid = db.upsert_business({'name': 'Test Corp', 'city': 'Tampa', 'state': 'FL'})
+        bid = db.upsert_business({"name": "Test Corp", "city": "Tampa", "state": "FL"})
         assert bid
         stats = db.get_stats()
-        assert int(stats['total_records']) >= 1
+        assert int(stats["total_records"]) >= 1
         db.close()
     finally:
         os.unlink(db_path)
@@ -28,17 +30,18 @@ def test_forgedb_sqlite_crud():
 def test_forgedb_coalesce():
     """Verify COALESCE never overwrites existing data."""
     from forge.db import ForgeDB
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = f.name
     try:
-        db = ForgeDB.from_config({'db_path': db_path})
+        db = ForgeDB.from_config({"db_path": db_path})
         db.ensure_schema()
-        bid = db.upsert_business({'name': 'Test', 'city': 'Tampa', 'state': 'FL'})
-        db.write_enrichment(bid, {'email': 'first@test.com'}, 'test')
-        db.write_enrichment(bid, {'email': 'second@test.com'}, 'test2')
+        bid = db.upsert_business({"name": "Test", "city": "Tampa", "state": "FL"})
+        db.write_enrichment(bid, {"email": "first@test.com"}, "test")
+        db.write_enrichment(bid, {"email": "second@test.com"}, "test2")
         # Email should still be first@test.com
         stats = db.get_stats()
-        assert int(stats['with_email']) == 1
+        assert int(stats["with_email"]) == 1
         db.close()
     finally:
         os.unlink(db_path)
@@ -47,20 +50,21 @@ def test_forgedb_coalesce():
 def test_csv_import_export():
     """Test CSV round-trip."""
     from forge.db import ForgeDB
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = f.name
-    csv_in = tempfile.NamedTemporaryFile(suffix='.csv', mode='w', delete=False, newline='')
-    csv_out = tempfile.NamedTemporaryFile(suffix='.csv', delete=False)
+    csv_in = tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False, newline="")
+    csv_out = tempfile.NamedTemporaryFile(suffix=".csv", delete=False)
     csv_out.close()
     try:
         # Write test CSV
         writer = csv.writer(csv_in)
-        writer.writerow(['Business Name', 'City', 'State', 'Website'])
-        writer.writerow(['Pizza Palace', 'Tampa', 'FL', 'https://pizza.com'])
-        writer.writerow(['Salon Bella', 'Miami', 'FL', 'https://salon.com'])
+        writer.writerow(["Business Name", "City", "State", "Website"])
+        writer.writerow(["Pizza Palace", "Tampa", "FL", "https://pizza.com"])
+        writer.writerow(["Salon Bella", "Miami", "FL", "https://salon.com"])
         csv_in.close()
 
-        db = ForgeDB.from_config({'db_path': db_path})
+        db = ForgeDB.from_config({"db_path": db_path})
         db.ensure_schema()
         result = db.import_csv(csv_in.name)
         assert result is not None
@@ -68,7 +72,11 @@ def test_csv_import_export():
 
         export_result = db.export_csv(csv_out.name)
         assert export_result is not None
-        row_count = export_result.get("row_count", 0) if isinstance(export_result, dict) else int(export_result)
+        row_count = (
+            export_result.get("row_count", 0)
+            if isinstance(export_result, dict)
+            else int(export_result)
+        )
         assert row_count >= 2
         db.close()
     finally:
@@ -90,10 +98,11 @@ def test_config_defaults(tmp_path, monkeypatch):
     import importlib
 
     import forge.config
+
     importlib.reload(forge.config)
     from forge.config import ForgeConfig as FreshConfig
 
     config = FreshConfig.load()
-    assert config.db_backend == 'sqlite'
+    assert config.db_backend == "sqlite"
     assert config.workers == 50
-    assert config.adapter == 'auto'
+    assert config.adapter == "auto"
