@@ -20,8 +20,8 @@ import subprocess
 import time
 from datetime import datetime
 
-from forge.db import ForgeDB
 from forge.config import ForgeConfig
+from forge.db import ForgeDB
 
 logging.basicConfig(
     level=logging.INFO,

@@ -23,8 +23,8 @@ class TestMCPToolDefinitions:
 
 class TestMCPExport:
     def test_export_with_state_filter(self, sqlite_db, tmp_path, monkeypatch):
-        from forge.mcp_server import _tool_forge_export
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_export
 
         sqlite_db.execute(
             "INSERT INTO businesses (id, name, state, email) VALUES (?, ?, ?, ?)",
@@ -50,8 +50,8 @@ class TestMCPExport:
             mcp_mod._db = old_db
 
     def test_export_no_filter(self, sqlite_db, tmp_path, monkeypatch):
-        from forge.mcp_server import _tool_forge_export
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_export
 
         sqlite_db.upsert_business({"name": "Test", "state": "FL"})
 
@@ -68,8 +68,8 @@ class TestMCPExport:
             mcp_mod._db = old_db
 
     def test_export_requires_output_path(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_export
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_export
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -80,8 +80,8 @@ class TestMCPExport:
             mcp_mod._db = old_db
 
     def test_export_rejects_path_traversal(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_export
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_export
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -94,8 +94,8 @@ class TestMCPExport:
 
 class TestMCPStats:
     def test_stats_returns_counts(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_stats
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_stats
 
         sqlite_db.upsert_business({"name": "Test", "state": "FL"})
 
@@ -111,8 +111,8 @@ class TestMCPStats:
 
 class TestMCPEnrichRecord:
     def test_enrich_record_creates_business(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_enrich_record
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_enrich_record
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -128,8 +128,8 @@ class TestMCPEnrichRecord:
             mcp_mod._db = old_db
 
     def test_enrich_record_requires_name(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_enrich_record
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_enrich_record
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -140,8 +140,8 @@ class TestMCPEnrichRecord:
             mcp_mod._db = old_db
 
     def test_enrich_record_requires_valid_state(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_enrich_record
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_enrich_record
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -154,8 +154,8 @@ class TestMCPEnrichRecord:
 
 class TestMCPSearch:
     def test_search_requires_query(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_search
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_search
 
         old_db = mcp_mod._db
         mcp_mod._db = sqlite_db
@@ -166,8 +166,8 @@ class TestMCPSearch:
             mcp_mod._db = old_db
 
     def test_search_finds_matching_business(self, sqlite_db):
-        from forge.mcp_server import _tool_forge_search
         import forge.mcp_server as mcp_mod
+        from forge.mcp_server import _tool_forge_search
 
         sqlite_db.upsert_business({"name": "Pizza Palace", "city": "Tampa", "state": "FL"})
         sqlite_db.upsert_business({"name": "Salon Bella", "city": "Miami", "state": "FL"})

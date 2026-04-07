@@ -35,8 +35,11 @@ except ImportError:
     __version__ = "1.0.0"
 
 # UI helpers (colors, progress bar, logging, messages) extracted to cli_helpers.py
-from forge.cli_helpers import (  # noqa: E402
-    setup_logging, die, warn, info,
+from forge.cli_helpers import (
+    die,
+    info,
+    setup_logging,
+    warn,
 )
 
 # Re-export color functions that read _COLOR_ENABLED from this module
@@ -481,8 +484,9 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
     info("  Press Ctrl+C to stop.\n")
 
     try:
-        from forge.dashboard.app import app
         import uvicorn
+
+        from forge.dashboard.app import app
         uvicorn.run(app, host="127.0.0.1", port=port)
     except ImportError as e:
         die(

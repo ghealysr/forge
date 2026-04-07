@@ -3,13 +3,12 @@
 
 from forge.enrichment.prompts import (
     INDUSTRY_LIST,
-    build_single_enrichment_prompt,
     build_batch_enrichment_prompt,
-    build_industry_classification_prompt,
     build_health_score_prompt,
+    build_industry_classification_prompt,
+    build_single_enrichment_prompt,
     build_summary_prompt,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests: INDUSTRY_LIST

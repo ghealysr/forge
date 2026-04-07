@@ -3,13 +3,11 @@
 import time
 from unittest.mock import MagicMock, patch
 
-
 from forge.enrichment.pipeline import (
+    INDUSTRY_WHITELIST,
     EnrichmentPipeline,
     EnrichmentStats,
-    INDUSTRY_WHITELIST,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock objects

@@ -121,6 +121,7 @@ def query_npi_api(state: str, taxonomy: str = "", skip: int = 0, limit: int = 20
 def _get_forgedb(db_path=None):
     """Create a ForgeDB instance from db_path (SQLite) or env vars (PostgreSQL)."""
     import os
+
     from forge.db import ForgeDB
 
     if db_path:

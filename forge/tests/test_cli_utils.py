@@ -3,14 +3,12 @@
 import os
 from unittest.mock import patch
 
-
 import forge.cli as cli_module
 from forge.cli import (
     build_parser,
     setup_logging,
 )
 from forge.cli_helpers import ProgressBar
-
 
 # ---------------------------------------------------------------------------
 # Tests: color helpers

@@ -19,17 +19,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 logger = logging.getLogger("forge.db")
 
 # Schema definitions and backend classes live in db_schema.py
+from forge.db_io import _ForgeDBIOMixin  # noqa: E402
 from forge.db_schema import (  # noqa: E402
+    BOOLEAN_COLUMNS,
     BUSINESS_COLUMNS,
     BUSINESS_INDEXES,
     ENRICHABLE_FIELDS,
     JSON_COLUMNS,
-    BOOLEAN_COLUMNS,
-    _SQLiteBackend,
     _PostgresBackend,
+    _SQLiteBackend,
 )
-from forge.db_io import _ForgeDBIOMixin  # noqa: E402
-
 
 # ── Main Interface ───────────────────────────────────────────────────────────
 
@@ -744,4 +743,4 @@ class ForgeDB(_ForgeDBIOMixin):
 
 
 # _Transaction class is in db_schema.py but imported here for internal use
-from forge.db_schema import _Transaction  # noqa: E402, F811
+from forge.db_schema import _Transaction  # noqa: E402

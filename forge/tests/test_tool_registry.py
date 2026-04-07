@@ -4,7 +4,6 @@ import pytest
 
 from forge.core.tool_registry import SimpleTool, Tool, ToolDefinition, ToolRegistry
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

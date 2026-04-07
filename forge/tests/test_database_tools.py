@@ -3,12 +3,11 @@
 from unittest.mock import MagicMock
 
 from forge.tools.database import (
+    BatchWriteEnrichmentTool,
     DatabasePool,
     FetchUnenrichedTool,
     WriteEnrichmentTool,
-    BatchWriteEnrichmentTool,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock ForgeDB for testing

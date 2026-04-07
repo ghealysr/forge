@@ -281,7 +281,7 @@ class OvertureDiscovery:
         for row in rows:
             record = dict(zip(columns, row))
             raw_cat = record.get("category") or ""
-            record["forge_industry"] = _CATEGORY_TO_INDUSTRY.get(raw_cat.lower(), None)
+            record["forge_industry"] = _CATEGORY_TO_INDUSTRY.get(raw_cat.lower())
             results.append(record)
         return results
 

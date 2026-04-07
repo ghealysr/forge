@@ -36,13 +36,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import time
 import threading
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from forge.tools.web_scraper import AsyncWebScraper
 from forge.core.output_parser import extract_json_from_response
+from forge.tools.web_scraper import AsyncWebScraper
 
 logger = logging.getLogger("forge.enrichment")
 

@@ -192,8 +192,8 @@ class _PostgresBackend:
     def __init__(self, host: str, port: int, user: str, password: str,
                  dbname: str, min_connections: int = 2, max_connections: int = 10):
         import psycopg2
-        import psycopg2.pool
         import psycopg2.extras
+        import psycopg2.pool
         self._pool = psycopg2.pool.ThreadedConnectionPool(
             min_connections, max_connections,
             host=host, port=port, user=user, password=password,

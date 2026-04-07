@@ -2,11 +2,10 @@
 
 
 from forge.importers.sam_gov import (
-    normalize_name,
     _build_params,
     _extract_entity,
+    normalize_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests: normalize_name

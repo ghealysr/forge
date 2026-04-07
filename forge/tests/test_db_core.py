@@ -1,5 +1,6 @@
 """Tests for ForgeDB core functionality."""
 import uuid
+
 import pytest
 
 from forge.db import ForgeDB

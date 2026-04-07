@@ -1,5 +1,6 @@
 """Tests for ForgeConfig."""
 import os
+
 import pytest
 
 
@@ -11,6 +12,7 @@ class TestConfigDefaults:
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -26,6 +28,7 @@ class TestConfigDefaults:
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -39,6 +42,7 @@ class TestConfigDefaults:
                 monkeypatch.delenv(k, raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -51,6 +55,7 @@ class TestConfigDefaults:
             if k.startswith("FORGE_"):
                 monkeypatch.delenv(k, raising=False)
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -87,6 +92,7 @@ class TestConfigEnvOverrides:
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("FORGE_WORKERS", "123")
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -97,6 +103,7 @@ class TestConfigEnvOverrides:
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-key-123")
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -107,6 +114,7 @@ class TestConfigEnvOverrides:
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("FORGE_WORKERS", "50")
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig
@@ -121,9 +129,10 @@ class TestConfigTOML:
             if k.startswith("FORGE_"):
                 monkeypatch.delenv(k, raising=False)
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
-        from forge.config import cli_config_set, ForgeConfig
+        from forge.config import ForgeConfig, cli_config_set
         cli_config_set("workers", "100")
         config = ForgeConfig.load()
         assert config.workers == 100
@@ -173,6 +182,7 @@ class TestConfigSetAndSave:
     def test_save_creates_toml_file(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         import importlib
+
         import forge.config
         importlib.reload(forge.config)
         from forge.config import ForgeConfig

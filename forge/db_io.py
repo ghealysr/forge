@@ -12,7 +12,7 @@ import json
 import logging
 import os
 import uuid
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
 
 from forge.db_schema import ENRICHABLE_FIELDS, JSON_COLUMNS
 

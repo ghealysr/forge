@@ -3,13 +3,12 @@
 
 
 from forge.monitor import (
+    SERVICE_PREFIX,
+    SERVICES,
     load_previous_status,
     save_status,
     tail_log,
-    SERVICES,
-    SERVICE_PREFIX,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests: save_status / load_previous_status

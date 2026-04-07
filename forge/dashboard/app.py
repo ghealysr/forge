@@ -173,9 +173,9 @@ def _init_enrichment(mode: str, workers: int) -> tuple:
 
 def _run_enrichment_loop(db, mode: str, workers: int, total: int) -> None:
     """Build the pipeline and run enrichment."""
+    from forge.adapters.ollama import OllamaAdapter
     from forge.enrichment.pipeline import EnrichmentPipeline
     from forge.tools.database import DatabasePool
-    from forge.adapters.ollama import OllamaAdapter
 
     config = _get_config()
     pool = DatabasePool(db=db)

@@ -1,17 +1,17 @@
 """Tests for forge.safety.audit_agent — data classes and pure logic."""
 
 import time
+
 import pytest
 
 from forge.safety.audit_agent import (
-    AuditResult,
-    AuditStats,
     DEFAULT_AUDIT_INTERVAL,
     DEFAULT_SAMPLE_SIZE,
     FAILURE_THRESHOLD,
     HAIKU_MODEL,
+    AuditResult,
+    AuditStats,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests: AuditResult

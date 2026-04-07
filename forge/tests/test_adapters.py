@@ -1,9 +1,8 @@
 """Tests for forge.adapters — Ollama and Claude adapter static helpers and construction."""
 
 
-from forge.adapters.ollama import OllamaAdapter, DEFAULT_OLLAMA_URL
-from forge.adapters.claude import ClaudeAdapter, CLAUDE_MODELS, _BACKOFF_DELAYS
-
+from forge.adapters.claude import _BACKOFF_DELAYS, CLAUDE_MODELS, ClaudeAdapter
+from forge.adapters.ollama import DEFAULT_OLLAMA_URL, OllamaAdapter
 
 # ---------------------------------------------------------------------------
 # Tests: OllamaAdapter construction

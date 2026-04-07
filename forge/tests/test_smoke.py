@@ -1,6 +1,6 @@
 """Smoke tests for FORGE — verify basic functionality."""
-import os
 import csv
+import os
 import tempfile
 
 
@@ -88,6 +88,7 @@ def test_config_defaults(tmp_path, monkeypatch):
 
     # Reload the module so _TOML_PATH picks up the new HOME
     import importlib
+
     import forge.config
     importlib.reload(forge.config)
     from forge.config import ForgeConfig as FreshConfig

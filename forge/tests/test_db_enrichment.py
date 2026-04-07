@@ -4,9 +4,8 @@ import uuid
 
 import pytest
 
-from forge.db import ForgeDB, ENRICHABLE_FIELDS
+from forge.db import ENRICHABLE_FIELDS, ForgeDB
 from forge.db_schema import COLUMN_ALIASES
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

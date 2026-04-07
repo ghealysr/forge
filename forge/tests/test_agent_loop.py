@@ -2,10 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-
 from forge.core.agent_loop import AgentConfig, AgentLoop, AgentResult
 from forge.core.tool_registry import SimpleTool, ToolRegistry
-
 
 # ---------------------------------------------------------------------------
 # Mock adapter

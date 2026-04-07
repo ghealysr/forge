@@ -3,27 +3,30 @@
 
 
 from forge.importers.fcc_uls import (
-    normalize_phone as fcc_normalize_phone,
+    BUSINESS_TYPES,
+    COL_APPLICANT_TYPE,
+    COL_EMAIL,
+    COL_ENTITY_NAME,
+    COL_ENTITY_TYPE,
+    COL_PHONE,
+    COL_STATE,
+    build_name_state_index,
+    build_phone_index,
     normalize_name,
     parse_en_file,
-    build_phone_index,
-    build_name_state_index,
-    BUSINESS_TYPES,
-    COL_ENTITY_TYPE,
-    COL_ENTITY_NAME,
-    COL_PHONE,
-    COL_EMAIL,
-    COL_STATE,
-    COL_APPLICANT_TYPE,
+)
+from forge.importers.fcc_uls import (
+    normalize_phone as fcc_normalize_phone,
+)
+from forge.importers.npi_registry import (
+    classify_taxonomy,
 )
 from forge.importers.npi_registry import (
     normalize_phone as npi_normalize_phone,
-    classify_taxonomy,
 )
 from forge.importers.smtp_verifier import (
     extract_domain,
 )
-
 
 # ---------------------------------------------------------------------------
 # FCC ULS: normalize_phone
@@ -92,7 +95,7 @@ class TestNormalizeName:
 
     def test_preserves_core_name(self):
         result = normalize_name("Tampa Bay Dental")
-        assert "TAMPA BAY DENTAL" == result
+        assert result == "TAMPA BAY DENTAL"
 
 
 # ---------------------------------------------------------------------------

@@ -71,7 +71,32 @@ ignore_missing_imports = true
 [tool.ruff]
 target-version = "py310"
 line-length = 100
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "B904",    # raise from (style preference)
+    "SIM105",  # contextlib.suppress (style preference)
+    "SIM115",  # open context manager (style preference)
+    "RUF012",  # mutable class variable annotation
+    "RUF059",  # unused unpacked variable
+    "RUF005",  # collection literal concatenation
+    "N806",    # variable in function should be lowercase
+    "N801",    # class name casing
+    "N818",    # exception name suffix
+    "B905",    # zip strict (Python 3.10+ only)
+    "C401",    # unnecessary generator (style)
+    "B008",    # function call in default arg
+    "B007",    # unused loop variable
+    "RUF043",  # implicit concatenation in collection
+    "SIM102",  # collapsible if (style)
+    "SIM103",  # return condition directly (style)
+    "SIM108",  # ternary operator (style)
+    "SIM110",  # reimplemented builtin (style)
+    "SIM118",  # key in dict.keys() (style)
+    "SIM201",  # negate equal comparison (style)
+]
 
 [tool.coverage.run]
 source = ["forge"]

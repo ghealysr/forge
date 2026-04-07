@@ -1,5 +1,6 @@
 """Shared test fixtures for the FORGE test suite."""
 import csv
+
 import pytest
 
 from forge.db import ForgeDB

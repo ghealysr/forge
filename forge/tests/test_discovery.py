@@ -2,14 +2,13 @@
 
 import pytest
 
-from forge.discovery.zip_centroids import get_zip_centroid
 from forge.discovery.overture import (
     _CATEGORY_TO_INDUSTRY,
     _INDUSTRY_TO_CATEGORIES,
     MILES_TO_DEGREES,
     OvertureDiscoveryError,
 )
-
+from forge.discovery.zip_centroids import get_zip_centroid
 
 # ---------------------------------------------------------------------------
 # Tests: get_zip_centroid
