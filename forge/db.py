@@ -180,7 +180,7 @@ class ForgeDB(_ForgeDBIOMixin):
 
             logger.debug("Enrichment written: biz=%s source=%s fields=%s", business_id, source, list(safe_updates.keys()))
             return {"status": "updated", "business_id": business_id, "fields_updated": list(safe_updates.keys())}
-        except Exception as e:
+        except Exception as e:  # Non-critical: return error dict instead of crashing caller
             logger.error("write_enrichment failed for %s: %s", business_id, e)
             return {"status": "error", "business_id": business_id, "error": str(e)}
 
@@ -240,11 +240,11 @@ class ForgeDB(_ForgeDBIOMixin):
                     try:
                         tx.execute(query, tuple(params))
                         updated += 1
-                    except Exception as e:
+                    except Exception as e:  # Non-critical: count error, continue batch
                         errors += 1
                         logger.warning("Batch write failed for %s: %s", business_id, e)
             logger.debug("Batch enrichment written: %d/%d records, source=%s", updated, len(batch), source)
-        except Exception as e:
+        except Exception as e:  # Non-critical: return error dict with partial results
             logger.error("write_enrichment_batch failed: %s", e)
             return {"status": "error", "updated": updated,
                     "errors": errors + (len(batch) - updated - errors),
@@ -327,7 +327,7 @@ class ForgeDB(_ForgeDBIOMixin):
                     columns = [desc[0] for desc in cursor.description]
                     rows = cursor.fetchall()
                     return [dict(zip(columns, row)) for row in rows]
-            except Exception as e:
+            except Exception as e:  # Non-critical: return empty list so caller can continue
                 logger.error("fetch_for_enrichment failed (mode=%s): %s", mode, e)
                 return []
 
@@ -378,7 +378,7 @@ class ForgeDB(_ForgeDBIOMixin):
                         result = conn.execute(query).fetchone()
                     if result:
                         stats[key] = result[0]
-            except Exception as e:
+            except Exception as e:  # Non-critical: return partial stats on failure
                 logger.error("get_stats failed: %s", e)
         return stats
 
@@ -413,7 +413,7 @@ class ForgeDB(_ForgeDBIOMixin):
                     columns = [desc[0] for desc in cursor.description]
                     row = cursor.fetchone()
                     return dict(zip(columns, row)) if row else None
-            except Exception as e:
+            except Exception as e:  # Non-critical: return None so caller handles missing record
                 logger.error("get_business failed for %s: %s", business_id, e)
                 return None
 
@@ -448,7 +448,7 @@ class ForgeDB(_ForgeDBIOMixin):
                 else:
                     result = conn.execute(query, query_params).fetchone()
                     return result[0] if result else 0
-            except Exception as e:
+            except Exception as e:  # Non-critical: return -1 sentinel so caller knows it failed
                 logger.error("count() failed: %s", e)
                 return -1
 
@@ -510,7 +510,7 @@ class ForgeDB(_ForgeDBIOMixin):
                     columns = [desc[0] for desc in cursor.description]
                     rows = cursor.fetchall()
                     return [dict(zip(columns, row)) for row in rows]
-            except Exception as e:
+            except Exception as e:  # Non-critical: return empty list so pipeline continues
                 logger.error("fetch_dicts failed: %s", e)
                 return []
 
@@ -548,7 +548,7 @@ class ForgeDB(_ForgeDBIOMixin):
                 cur.execute(query, params)
                 conn.commit()
                 cur.close()
-            except Exception:
+            except Exception:  # Catch-and-reraise: rollback before propagating
                 conn.rollback()
                 raise
             finally:
@@ -591,17 +591,17 @@ class ForgeDB(_ForgeDBIOMixin):
                 cur.executemany(query, params_list)
                 conn.commit()
                 cur.close()
-            except Exception:
+            except Exception:  # Catch-and-reraise: mark broken, attempt rollback, then propagate
                 broken = True
                 try:
                     conn.rollback()
-                except Exception:
+                except Exception:  # Non-critical: connection may already be dead
                     pass
                 raise
             finally:
                 try:
                     self._backend._pool.putconn(conn, close=broken)
-                except Exception:
+                except Exception:  # Non-critical: pool cleanup must not mask the real error
                     pass
         else:
             with self._backend.write_connection() as conn:
@@ -627,18 +627,18 @@ class ForgeDB(_ForgeDBIOMixin):
             tx = _Transaction(conn, is_postgres=True, placeholder=self.placeholder)
             yield tx
             conn.commit()
-        except Exception:
+        except Exception:  # Catch-and-reraise: rollback, mark connection broken, propagate
             broken = True
             try:
                 conn.rollback()
-            except Exception:
+            except Exception:  # Non-critical: connection may be dead after the failure
                 pass
             raise
         finally:
             self._in_transaction.active = False
             try:
                 self._backend._pool.putconn(conn, close=broken)
-            except Exception:
+            except Exception:  # Non-critical: pool return must not mask the real error
                 pass
 
     @contextmanager
@@ -651,7 +651,7 @@ class ForgeDB(_ForgeDBIOMixin):
                 tx = _Transaction(conn, is_postgres=False, placeholder=self.placeholder)
                 yield tx
                 conn.commit()
-            except Exception:
+            except Exception:  # Catch-and-reraise: rollback SQLite transaction, propagate
                 conn.rollback()
                 raise
             finally:

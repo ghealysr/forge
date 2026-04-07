@@ -159,7 +159,7 @@ class OvertureDiscovery:
             # Anonymous access -- Overture data is public
             self._conn.execute("SET s3_access_key_id='';")
             self._conn.execute("SET s3_secret_access_key='';")
-        except Exception as exc:
+        except Exception as exc:  # Catch-and-reraise: wrap in domain-specific error
             raise OvertureDiscoveryError(
                 f"Failed to initialize DuckDB extensions: {exc}. "
                 "Check your internet connection."
@@ -260,7 +260,7 @@ class OvertureDiscovery:
             result = self._conn.execute(sql)
             rows = result.fetchall()
             columns = [desc[0] for desc in result.description]
-        except Exception as exc:
+        except Exception as exc:  # Catch-and-reraise: wrap in domain-specific error with context
             elapsed = time.time() - start
             err_str = str(exc).lower()
             if elapsed >= QUERY_TIMEOUT_SECONDS or "timeout" in err_str:
@@ -326,7 +326,7 @@ class OvertureDiscovery:
         if self._conn:
             try:
                 self._conn.close()
-            except Exception:
+            except Exception:  # Non-critical: best-effort cleanup on close
                 pass
             self._conn = None
             logger.info("DuckDB connection closed.")

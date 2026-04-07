@@ -388,7 +388,7 @@ class ForgeConfig:
             adapter = ClaudeAdapter(api_key=self.anthropic_api_key, default_model=self.claude_model)
             logger.info("Auto-detected Claude adapter (API key present)")
             return adapter
-        except Exception as e:
+        except Exception as e:  # Non-critical: adapter unavailable, fall through to next
             logger.warning("Claude adapter init failed: %s", e)
             return None
 
@@ -401,7 +401,7 @@ class ForgeConfig:
                 logger.info("Auto-detected Ollama adapter at %s", self.ollama_url)
                 return adapter
             adapter.close()
-        except Exception as e:
+        except Exception as e:  # Non-critical: Ollama not running, fall through to none
             logger.debug("Ollama not available: %s", e)
         return None
 

@@ -94,7 +94,7 @@ def check_service_running(label: str) -> dict:
                         "pid": pid if pid != "-" else None,
                         "exit_code": exit_code,
                     }
-        except Exception as e:
+        except Exception as e:  # Non-critical: treat as not-running and continue
             logger.error("Failed to check service %s: %s", label, e)
         return {"running": False, "pid": None, "exit_code": "unknown"}
     else:
@@ -108,7 +108,7 @@ def check_service_running(label: str) -> dict:
                 "running": result.returncode == 0,
                 "pid": result.stdout.strip().split('\n')[0] if result.returncode == 0 else None,
             }
-        except Exception:
+        except Exception:  # Non-critical: pgrep unavailable on this platform
             return {
                 "running": False,
                 "pid": None,
@@ -134,7 +134,7 @@ def restart_service(label: str, plist: str) -> bool:
             else:
                 logger.error("Failed to restart %s", label)
                 return False
-        except Exception as e:
+        except Exception as e:  # Non-critical: restart failed, log and continue monitoring
             logger.error("Error restarting %s: %s", label, e)
             return False
     else:
@@ -155,7 +155,7 @@ def get_db_stats() -> dict:
         stats = db.get_stats()
         db.close()
         return stats
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict so monitor can log and continue
         logger.error("DB query failed: %s", e)
         return {"error": str(e)}
 
@@ -183,7 +183,7 @@ def tail_log(logfile: str, lines: int = 5) -> str:
             capture_output=True, text=True, timeout=5,
         )
         return result.stdout.strip()
-    except Exception:
+    except Exception:  # Non-critical: log file may not exist or tail may fail
         return "(no log)"
 
 

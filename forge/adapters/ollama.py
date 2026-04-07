@@ -164,7 +164,7 @@ class OllamaAdapter:
             try:
                 result = self.generate_simple(prompt, model=model, timeout=timeout)
                 results.append(result)
-            except Exception as e:
+            except Exception as e:  # Non-critical: append empty string, continue batch
                 logger.warning("Batch item failed: %s", e)
                 results.append("")
         return results
@@ -177,7 +177,7 @@ class OllamaAdapter:
                 timeout=5.0,
             )
             return response.status_code == 200
-        except Exception:
+        except Exception:  # Non-critical: any failure means Ollama is not healthy
             return False
 
     def list_models(self) -> List[str]:
@@ -189,7 +189,7 @@ class OllamaAdapter:
             )
             data = response.json()
             return [m["name"] for m in data.get("models", [])]
-        except Exception:
+        except Exception:  # Non-critical: return empty list if Ollama is unreachable
             return []
 
     def model_info(self, model: Optional[str] = None) -> Dict[str, Any]:
@@ -202,7 +202,7 @@ class OllamaAdapter:
                 timeout=10.0,
             )
             return response.json()
-        except Exception as e:
+        except Exception as e:  # Non-critical: return error dict for model_info query
             return {"error": str(e)}
 
     def close(self) -> None:

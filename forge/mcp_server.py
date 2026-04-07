@@ -224,7 +224,7 @@ def _insert_discovered_businesses(db, results: list) -> int:
             if record.get("name"):
                 db.upsert_business(record)
                 inserted += 1
-        except Exception as e:
+        except Exception as e:  # Non-critical: skip failed record, continue importing
             logger.warning("Failed to insert discovered business: %s", e)
     return inserted
 
@@ -251,7 +251,7 @@ def _tool_forge_discover(arguments: Dict[str, Any]) -> Dict[str, Any]:
         db = _get_db()
         inserted = _insert_discovered_businesses(db, results)
         return {"businesses": results, "count": len(results), "inserted_to_db": inserted, "zip_code": zip_code, "industry": industry}
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": str(e)}
 
 
@@ -281,7 +281,7 @@ def _tool_forge_enrich_record(arguments: Dict[str, Any]) -> Dict[str, Any]:
             clean = _clean_for_json([full_record])[0]
             return {"status": "created", "business_id": business_id, "record": clean}
         return {"status": "created", "business_id": business_id, "note": "Record created but could not be retrieved."}
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Failed to enrich record: {e}"}
 
 
@@ -300,7 +300,7 @@ def _tool_forge_stats(arguments: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 clean_stats[k] = str(v)
         return clean_stats
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Failed to get stats: {e}"}
 
 
@@ -356,7 +356,7 @@ def _tool_forge_search(arguments: Dict[str, Any]) -> Dict[str, Any]:
         results = db.fetch_dicts(sql, tuple(params))
         clean_results = _clean_for_json(results)
         return {"results": clean_results, "count": len(clean_results), "query": query, "filters": {"state": state, "industry": industry}}
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Search failed: {e}"}
 
 
@@ -404,7 +404,7 @@ def _tool_forge_export(arguments: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 f.write("")  # empty file
         return {"status": "success", "row_count": len(rows), "output_path": output_path}
-    except Exception as e:
+    except Exception as e:  # Non-critical: return error dict to MCP client
         return {"error": f"Export failed: {e}", "row_count": 0}
 
 
@@ -469,7 +469,7 @@ def dispatch_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         return {"error": f"Unknown tool: {tool_name}"}
     try:
         return handler(arguments)
-    except Exception as e:
+    except Exception as e:  # MCP boundary: catch any tool error, return structured error
         logger.error("Tool '%s' raised an exception: %s", tool_name, e)
         logger.error(traceback.format_exc())
         return {"error": f"Tool execution failed: {e}"}
@@ -589,12 +589,12 @@ def run_server():
         except KeyboardInterrupt:
             logger.info("Received interrupt. Shutting down.")
             return
-        except Exception as e:
+        except Exception as e:  # Server boundary: catch all to keep MCP server alive
             logger.error("Unexpected error in main loop: %s", e)
             logger.error(traceback.format_exc())
             try:
                 _write_error(-32603, f"Internal error: {e}")
-            except Exception:
+            except Exception:  # Non-critical: stdout may be broken; swallow to avoid crash
                 pass
 
 

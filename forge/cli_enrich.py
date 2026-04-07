@@ -57,7 +57,7 @@ def _detect_enrichment_mode(args: argparse.Namespace, config: Any) -> tuple:
         try:
             config.adapter = args.adapter
             adapter = config.get_adapter()
-        except Exception as e:
+        except Exception as e:  # CLI boundary: convert to user-friendly error and exit
             die(f"Could not initialize adapter '{args.adapter}': {e}")
     if args.mode:
         mode = args.mode
@@ -97,7 +97,7 @@ def _run_enrichment_pipeline(db: Any, adapter: Any, args: argparse.Namespace, co
         return None
     except ConnectionError:
         die("Could not connect to target.", hint="Web enrichment requires internet access.")
-    except Exception as e:
+    except Exception as e:  # CLI boundary: log full traceback, then exit with message
         logging.getLogger("forge").error("Pipeline failed: %s", e, exc_info=True)
         die(f"Enrichment failed: {e}")
 
@@ -110,7 +110,7 @@ def _export_csv_results(db: Any, args: argparse.Namespace, input_path: Path) -> 
     try:
         result = db.export_csv(output_path)
         exported = result.get("row_count", 0) if isinstance(result, dict) else int(result)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Failed to export results: {e}")
     info(f"\n{green('Exported')} {exported:,} enriched records to {bold(output_path)}")
 
@@ -119,7 +119,7 @@ def _print_enrichment_summary(db: Any, count: int, stats: Any) -> None:
     """Print the enrichment summary after processing."""
     try:
         db_stats = db.get_stats()
-    except Exception:
+    except Exception:  # Non-critical: stats are optional; show summary without them
         db_stats = {}
     info(f"\n{bold('Enrichment Summary')}")
     info("  " + "-" * 40)
@@ -152,7 +152,7 @@ def run_csv_enrich(args: argparse.Namespace, logger: logging.Logger) -> None:
     db.ensure_schema()
     try:
         count = db.import_csv(str(input_path))
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Failed to import CSV: {e}")
     if count == 0:
         die("No records found in file.", hint="Check that the CSV has recognizable columns.")
@@ -187,11 +187,11 @@ def run_database_enrich(args: argparse.Namespace, logger: logging.Logger) -> Non
                  "       or 'forge import --file data.csv' to load into a persistent database.")
     try:
         db = ForgeDB.from_config(db_config)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not connect to database: {e}")
     try:
         db_stats = db.get_stats()
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not read database: {e}")
     total = db_stats.get("total_records", 0)
     if total == 0:

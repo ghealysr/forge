@@ -320,7 +320,7 @@ class ClaudeAdapter:
             try:
                 result = self.generate_simple(prompt, model=model, timeout=timeout)
                 results.append(result)
-            except Exception as e:
+            except Exception as e:  # Non-critical: append empty string, continue batch
                 logger.warning("Batch item failed: %s", e)
                 results.append("")
         return results
@@ -348,7 +348,7 @@ class ClaudeAdapter:
         except anthropic.RateLimitError:
             # Rate limited means the key works -- we're just sending too much
             return True
-        except Exception as e:
+        except Exception as e:  # Non-critical: treat any unexpected error as unhealthy
             logger.warning("Claude health check failed: %s", e)
             return False
 

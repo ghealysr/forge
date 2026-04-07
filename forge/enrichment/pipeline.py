@@ -248,7 +248,7 @@ class EnrichmentPipeline:
         if batch_enrichments:
             try:
                 self._write_enrichment_batch(batch_enrichments, source="scraper")
-            except Exception as e:
+            except Exception as e:  # Non-critical: count failures, continue processing
                 with self._lock:
                     self._stats.scrape_failures += len(batch_enrichments)
                 logger.error("Batch enrichment write failed: %s", e)
@@ -256,7 +256,7 @@ class EnrichmentPipeline:
         if batch_tracking_ids:
             try:
                 self._update_enrichment_tracking_batch(batch_tracking_ids)
-            except Exception as e:
+            except Exception as e:  # Non-critical: tracking is best-effort
                 logger.error("Batch tracking update failed: %s", e)
 
     def _collect_scrape_results(
@@ -278,7 +278,7 @@ class EnrichmentPipeline:
                 break
             try:
                 biz_id, updates, is_failure = self._process_scrape_result(result, url_biz_map)
-            except Exception as e:
+            except Exception as e:  # Non-critical: skip bad result, continue batch
                 with self._lock:
                     self._stats.scrape_failures += 1
                 logger.debug("Scrape result processing failed: %s", e)
@@ -361,7 +361,7 @@ class EnrichmentPipeline:
 
                 try:
                     self._enrich_single_ai(biz)
-                except Exception as e:
+                except Exception as e:  # Non-critical: skip failed business, continue batch
                     logger.warning("AI enrichment failed for %s: %s", biz.get("name", "?"), e)
                     with self._lock:
                         self._stats.llm_failures += 1
@@ -472,7 +472,7 @@ class EnrichmentPipeline:
 
         try:
             return self._db.fetch_dicts(query, tuple(params))
-        except Exception as e:
+        except Exception as e:  # Non-critical: return empty list so extraction loop stops cleanly
             logger.error("fetch_businesses_for_scrape failed: %s", e)
             return []
 
@@ -505,7 +505,7 @@ class EnrichmentPipeline:
 
         try:
             return self._db.fetch_dicts(query, tuple(params))
-        except Exception as e:
+        except Exception as e:  # Non-critical: return empty list so AI loop stops cleanly
             logger.error("fetch_businesses_for_ai failed: %s", e)
             return []
 
@@ -537,7 +537,7 @@ class EnrichmentPipeline:
         # Delegate to ForgeDB's write_enrichment which handles dialect differences
         try:
             self._db.write_enrichment(business_id, safe_updates, source=source)
-        except Exception as e:
+        except Exception as e:  # Non-critical: log and continue; data loss is acceptable
             logger.error("write_enrichment failed for %s: %s", business_id, e)
 
     def _update_enrichment_tracking(self, business_id: str) -> None:
@@ -552,7 +552,7 @@ class EnrichmentPipeline:
                    WHERE id = {ph}""",
                 (business_id,),
             )
-        except Exception as e:
+        except Exception as e:  # Non-critical: tracking is best-effort, continue
             logger.error("update_enrichment_tracking failed for %s: %s", business_id, e)
 
     def _write_enrichment_batch(
@@ -573,7 +573,7 @@ class EnrichmentPipeline:
         formatted_batch = [(bid, updates) for bid, updates in batch]
         try:
             self._db.write_enrichment_batch(formatted_batch, source=source)
-        except Exception as e:
+        except Exception as e:  # Catch-and-reraise: log context, then propagate to flush handler
             logger.error("write_enrichment_batch failed (%d records): %s", len(batch), e)
             raise
 
@@ -598,6 +598,6 @@ class EnrichmentPipeline:
 
             logger.debug("Batch tracking updated: %d records", len(business_ids))
 
-        except Exception as e:
+        except Exception as e:  # Catch-and-reraise: log context, then propagate to flush handler
             logger.error("update_enrichment_tracking_batch failed (%d records): %s", len(business_ids), e)
             raise

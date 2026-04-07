@@ -132,7 +132,7 @@ class _ForgeDBIOMixin:
                     else:
                         updated_count += 1
                 conn.commit()
-            except Exception as e:
+            except Exception as e:  # Non-critical: return error dict with partial results
                 if self.is_postgres:
                     conn.rollback()
                 logger.error("upsert_batch failed: %s", e)
@@ -262,7 +262,7 @@ class _ForgeDBIOMixin:
             total_rows, imported, skipped, column_mapping = self._read_and_batch_rows(filepath)
             if column_mapping is None:
                 return {"status": "error", "error": "No recognizable columns or headers"}
-        except Exception as e:
+        except Exception as e:  # Non-critical: return error dict so CLI can display message
             logger.error("CSV import failed: %s", e)
             return {"status": "error", "error": str(e)}
         logger.info("CSV import complete: %d total, %d imported, %d skipped", total_rows, imported, skipped)
@@ -305,7 +305,7 @@ class _ForgeDBIOMixin:
                     columns = [desc[0] for desc in cursor.description]
                     rows = cursor.fetchall()
                     exported = self._write_rows_to_csv(filepath, rows, columns, False)
-            except Exception as e:
+            except Exception as e:  # Non-critical: return error dict so CLI can display message
                 logger.error("CSV export failed: %s", e)
                 return {"status": "error", "error": str(e), "row_count": 0}
         logger.info("CSV export complete: %d rows -> %s", exported, filepath)
@@ -325,6 +325,6 @@ class _ForgeDBIOMixin:
                 json.dump(rows, f, indent=2, default=str)
             logger.info("JSON export complete: %d rows -> %s", len(rows), filepath)
             return {"status": "completed", "row_count": len(rows)}
-        except Exception as e:
+        except Exception as e:  # Non-critical: return error dict so CLI can display message
             logger.error("JSON export failed: %s", e)
             return {"status": "error", "error": str(e), "row_count": 0}

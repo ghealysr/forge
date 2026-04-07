@@ -151,7 +151,7 @@ def cmd_import(args: argparse.Namespace) -> None:
     try:
         db = ForgeDB.from_config(db_config)
         db.ensure_schema()
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not connect to database: {e}")
 
     info(f"\n{bold('FORGE')} {dim(f'v{__version__}')} — Import")
@@ -159,7 +159,7 @@ def cmd_import(args: argparse.Namespace) -> None:
 
     try:
         result = db.import_csv(str(input_path), return_details=True)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Import failed: {e}")
 
     _print_import_results(result)
@@ -184,7 +184,7 @@ def _get_export_db():
                 hint="Run 'forge enrich --file data.csv' or 'forge import --file data.csv' first.")
     try:
         return ForgeDB.from_config(db_config)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not connect to database: {e}")
 
 
@@ -200,7 +200,7 @@ def cmd_export(args: argparse.Namespace) -> None:
     try:
         result = db.export_json(output_path, where=filter_name) if output_format == "json" else db.export_csv(output_path, where=filter_name)
         exported = result.get("row_count", 0) if isinstance(result, dict) else int(result)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Export failed: {e}")
 
     if exported == 0:
@@ -274,7 +274,7 @@ def cmd_status(args: argparse.Namespace) -> None:
     try:
         db = ForgeDB.from_config(db_config)
         stats = db.get_stats()
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Could not read database: {e}")
 
     total = stats.get("total_records", 0)
@@ -372,7 +372,7 @@ def _config_set(config: Any, key: str, value: str) -> None:
     try:
         from forge.config import cli_config_set
         cli_config_set(key, value)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Failed to set config value: {e}")
 
 
@@ -405,7 +405,7 @@ def _display_results(results: list, args: argparse.Namespace, logger: Any) -> No
                 for r in results:
                     writer.writerow(r)
             info(f"  {green('Exported')} {len(results):,} businesses to {bold(args.output)}")
-        except Exception as e:
+        except Exception as e:  # Non-critical: warn but continue to display results
             warn(f"Failed to export CSV: {e}")
 
     if results and hasattr(args, "enrich") and args.enrich:
@@ -436,7 +436,7 @@ def _import_discovered(results: list, logger: Any) -> None:
         try:
             db.upsert_business(record)
             imported += 1
-        except Exception as e:
+        except Exception as e:  # Non-critical: skip failed record, continue importing
             logger.debug("Upsert failed for %s: %s", record.get("name", "?"), e)
     db.close()
     info(f"  {green('Imported')} {imported:,} businesses. Run {bold('forge enrich')} to enrich them.")
@@ -458,7 +458,7 @@ def cmd_discover(args: argparse.Namespace) -> None:
 
     try:
         results = _run_discovery(args)
-    except Exception as e:
+    except Exception as e:  # CLI boundary: convert to user-friendly error and exit
         die(f"Discovery failed: {e}")
         return
 

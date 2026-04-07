@@ -171,7 +171,7 @@ class AgentLoop:
         except KeyboardInterrupt:
             logger.warning("Agent interrupted by user")
             self._running = False
-        except Exception as e:
+        except Exception as e:  # Agent boundary: catch all to record error and return result
             logger.error("Agent fatal error: %s\n%s", e, traceback.format_exc())
             self._errors.append(f"Fatal: {e}")
         return final_output
@@ -188,7 +188,7 @@ class AgentLoop:
             )
             self._consecutive_errors = 0
             return response
-        except Exception as e:
+        except Exception as e:  # Non-critical: model call failed, apply backoff and retry
             self._consecutive_errors += 1
             error_msg = f"Turn {self._turn_count}: model error — {e}"
             logger.error(error_msg)
@@ -231,8 +231,8 @@ class AgentLoop:
                     tool_calls=len(tool_calls),
                     total_tool_calls=self._tool_call_count,
                 )
-            except Exception:
-                pass  # Callback errors shouldn't kill the loop
+            except Exception:  # Non-critical: callback errors must not kill the agent loop
+                pass
 
     def _build_result(self, final_output: Optional[str], elapsed: float) -> AgentResult:
         """Build the final AgentResult."""
