@@ -10,4 +10,4 @@ Usage:
     python -m forge --mode ai --batch-size 5
 """
 
-__version__ = "1.1.0"
+__version__ = "2.0.0"

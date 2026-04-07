@@ -73,7 +73,7 @@ class AgentLoop:
     Takes a system prompt, a tool registry, and a model adapter.
     Runs autonomously until a stopping condition is met.
 
-    Pattern derived from Claude Code's runAgent.ts:
+    Core execution pattern:
     - conversation = [system_prompt, ...messages]
     - Each turn: send to model → parse tool calls → execute → feed back
     - Auto-compact when conversation grows too long

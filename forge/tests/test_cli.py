@@ -18,7 +18,7 @@ class TestCLIHelp:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0
-        assert "1.1.0" in result.stdout
+        assert "2.0.0" in result.stdout
 
 
 class TestCLIImports:
@@ -32,4 +32,4 @@ class TestCLIImports:
 
     def test_version_constant(self):
         from forge import __version__
-        assert __version__ == "1.1.0"
+        assert __version__ == "2.0.0"

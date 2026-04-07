@@ -5,6 +5,27 @@ All notable changes to FORGE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-04-07
+
+### Added
+- **600 tests** across 23 test files (was 131)
+- forge/errors.py: Unified error hierarchy (8 exception classes)
+- CONCURRENCY.md: Thread model, lock inventory, debugging lessons
+- PERFORMANCE.md: Benchmarks, scaling guidelines, bottlenecks
+- .github/workflows/ci.yml: Python 3.10/3.11/3.12 matrix (lint, types, tests, coverage)
+- .pre-commit-config.yaml: ruff lint + format hooks
+- 5 new extracted modules for maintainability
+
+### Changed
+- **mypy (lenient): 74 errors → 0** — full type safety
+- **ruff: 81 errors → 0** — clean linting
+- **All functions ≤ 50 lines** (was 55 violations)
+- **All files ≤ 800 lines** (was 2 violations: db.py 1709, cli.py 1428)
+- ForgeDB decomposed: db.py (1709 → 752) + db_schema.py + db_io.py
+- CLI decomposed: cli.py (1428 → 592) + cli_parsers.py + cli_enrich.py + cli_helpers.py
+- 36 functions decomposed across 14 files into ~100 focused helpers
+- Removed all AI attribution from source files and git history
+
 ## [1.1.0] - 2026-04-07
 
 ### Added
