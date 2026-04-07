@@ -67,7 +67,7 @@ exclude = ["build", "dist", ".venv"]
 follow_imports = "silent"
 
 [[tool.mypy.overrides]]
-module = ["psycopg2.*", "duckdb.*", "anthropic.*", "aiohttp.*", "aiolimiter.*", "httpx.*", "_pytest.*", "pytest.*"]
+module = ["psycopg2.*", "duckdb.*", "anthropic.*", "aiohttp.*", "aiolimiter.*", "httpx.*", "_pytest.*", "pytest.*", "starlette.*", "fastapi.*", "uvicorn.*", "sse_starlette.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
