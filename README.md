@@ -1,6 +1,6 @@
 # FORGE
 
-<!-- TODO: Add logo -->
+![CI](https://github.com/ghealysr/forge/actions/workflows/ci.yml/badge.svg)
 
 **Free Open-source Runtime for data enrichment.**
 The open-source alternative to Apollo, ZoomInfo, and Clearbit.
@@ -31,11 +31,18 @@ That's it. No API keys, no accounts, no credit cards. FORGE runs entirely on you
 
 FORGE enriches business databases at scale using free data sources and local AI. It extracts emails from websites, detects technology stacks, imports government records, and generates AI-powered business summaries -- all without paying a dime to data brokers. Point it at a PostgreSQL table of businesses and it fills in the blanks: emails, tech stacks, SSL status, site speed, industry classification, health scores, pain points, and more.
 
-## Why It Exists
+## Why We Built It
 
-We got tired of paying $30K/year for business data enrichment. So we built our own. Then we open-sourced it.
+We got tired of paying $30K/year for business data enrichment that returned generic info@ emails. So we built our own engine using free government data sources, open-source AI, and 50+ technology detection patterns. Then we open-sourced it.
 
 Tools like Apollo, ZoomInfo, and Clearbit charge $10K-50K/year for data that's largely scraped from the same public sources you could access yourself. FORGE does exactly that -- systematically, reliably, and for free.
+
+## Documentation
+
+- [Architecture](ARCHITECTURE.md) -- data model, component map, agent loop, design decisions
+- [Security](SECURITY.md) -- threat model, hardening measures, audit history
+- [Contributing](CONTRIBUTING.md) -- dev setup, tests, lint, PR expectations
+- [Changelog](CHANGELOG.md) -- release history
 
 ---
 
@@ -361,9 +368,9 @@ Every enrichment batch logs the previous field values before writing. If a batch
 
 ---
 
-## Claude Code Integration
+## MCP Integration
 
-Add FORGE to your Claude Code MCP config (`~/.claude.json`):
+Add FORGE to your MCP config (`~/.claude.json`):
 
 ```json
 {
@@ -376,14 +383,14 @@ Add FORGE to your Claude Code MCP config (`~/.claude.json`):
 }
 ```
 
-Then ask Claude:
+Then ask your AI assistant:
 
 - "Find restaurants in Tampa and get their emails"
 - "How many businesses do we have in Florida?"
 - "Export all healthcare providers with emails to a CSV"
 - "Enrich this business: Smith Family Dental in Tampa, FL"
 
-FORGE exposes five tools to Claude Code:
+FORGE exposes five MCP tools:
 
 | Tool | What it does |
 |------|-------------|
@@ -408,7 +415,7 @@ FORGE exposes five tools to Claude Code:
 | Tech stack detection | Yes | No | Yes | Yes |
 | CSV in/out | Yes | Yes | Yes | No |
 | Dashboard | Yes | Yes | Yes | No |
-| Claude Code MCP | Yes | No | No | No |
+| MCP Integration | Yes | No | No | No |
 
 ---
 
